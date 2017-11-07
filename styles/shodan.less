@@ -1,16 +1,151 @@
-table{
-  width: 100%;
-  word-break:break-all;
+/*
+ All integrations are namespaced with the class `<integration_id>-integration`.  When creating custom
+ CSS to style your integration you should ensure that all your classes are appropriately namespaced to prevent
+ your css from affecting other integrations.  Note that the integration id is based off the name of the integration
+ directory.
+*/
+.shodan-integration {
 }
 
-td:first-child{
-  min-width: 150px;
+div.product {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
 }
 
-td{
-  padding: 1px 3px;
+div.isp {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
 }
 
-th{
-  padding: 3px;
+div.org {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.device {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.name {
+  text-align: left;
+  font-size: 12px;
+  padding-left: 5px;
+  font-weight: 600;
+  color: #ADADAD ;
+  padding-top: 3px;
+}
+
+div.hash {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.transport {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.version {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.os {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.asn {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.fingerprint {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.cipher {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+div.mac {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+}
+
+
+div.hostnames {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+  li{
+    margin-left: 15px;
+    font-size: 12px;
+    font-weight: 300;
+  }
+}
+
+div.domains {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+  li{
+    margin-left: 15px;
+    font-size: 12px;
+    font-weight: 300;
+  }
+}
+
+div.redirects {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+  li{
+    margin-left: 15px;
+    font-size: 12px;
+    font-weight: 300;
+  }
+}
+
+
+div.ports {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 300;
+  padding-left: 5px;
+  li{
+    margin-left: 15px;
+    font-size: 12px;
+    font-weight: 300;
+  }
 }

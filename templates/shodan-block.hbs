@@ -1,1 +1,151 @@
-{{object-to-table block.data.details}}
+<div class="dnsdball">
+    {{#each block.data.details.data as |item|}}
+
+    <div class = "name">
+        {{#if item.ip_str}}
+        <i class = "fa fa-info-circle #ADADAD"></i><span class="type"> <b> IP: </b> </span>
+        {{item.ip_str}}  <a href="https://www.shodan.io/host/{{item.ip_str}}">  (View in Shodan) </a>
+        {{/if}}
+    </div>
+
+    <div class = "product">
+        {{#if item.product}}
+        <span class="counts"> Product: </span>
+        <b>{{item.product}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "isp">
+        {{#if item.isp}}
+        <span class="balis"> ISP: </span>
+        <b>{{item.isp}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "org">
+        {{#if item.org}}
+        <span class="Ctimefirst"> Org: </span>
+        <b>{{item.org}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "device">
+        {{#if item.devicetype}}
+        <span class="Ctimelast"> Device Type: </span>
+        <b>{{item.devicetype}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "hash">
+        {{#if item.hash}}
+        <span class="name"> Hash: </span>
+        <b>{{item.hash}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "transport">
+        {{#if item.version}}
+        <span class="name"> Version: </span>
+        <b>{{item.version}}</b>
+        {{/if}}
+    </div>
+
+
+
+    <div class = "os">
+        {{#if item.os}}
+        <span class="name"> OS: </span>
+        <b>{{item.os}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "hostnames">
+        {{#if item.hostnames}}
+        <span class="datas"> Hostnames: </span>
+        {{/if}}
+        {{#if item.hostnames}}
+        {{#each item.hostnames as |data|}}
+        <li><b>{{data}}</b></li>
+        {{/each}}
+        {{else}}
+        {{/if}}
+    </div>
+
+    <div class = "domains">
+        {{#if item.domains}}
+        <span class="datas"> Domains: </span>
+        {{/if}}
+        {{#if item.domains}}
+        {{#each item.domains as |data|}}
+        <li><b>{{data}}</b></li>
+        {{/each}}
+        {{else}}
+        {{/if}}
+    </div>
+
+    <div class = "fingerprint">
+        {{#if item.ssh.fingerprint}}
+        <span class="name"> SSH Fingerprint: </span>
+        <b>{{item.ssh.fingerprint}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "mac">
+        {{#if item.ssh.mac}}
+        <span class="name"> SSH MAC: </span>
+        <b>{{item.ssh.mac}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "cipher">
+        {{#if item.ssh.cipher}}
+        <span class="name"> cipher: </span>
+        <b>{{item.ssh.cipher}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "redirects">
+        {{#if item.http.redirects}}
+        <span class="datas"> Redirects: </span>
+        {{/if}}
+        {{#if item.http.redirects}}
+        {{#each item.http.redirects as |data|}}
+        <li><b>{{data}}</b></li>
+        {{/each}}
+        {{else}}
+        {{/if}}
+    </div>
+
+    <div class = "robots">
+        {{#if item.http.robots}}
+        <span class="name"> HTTP Robots: </span>
+        <b>{{item.http.robots}}</b>
+        {{/if}}
+    </div>
+
+    <div class = "servers">
+        {{#if item.http.servers}}
+        <span class="name"> HTTP Servers: </span>
+        <b>{{item.http.servers}}</b>
+        {{/if}}
+    </div>
+    {{/each}}
+</div>
+<div class = "asn">
+{{#if block.data.details.asn}}
+<span class="counts"> ASN: </span>
+<b>{{block.data.details.asn}}</b>
+{{/if}}
+</div>
+
+<div class = "ports">
+{{#if block.data.details.ports}}
+<span class="datas"> Ports: </span>
+{{/if}}
+{{#if block.data.details.ports}}
+{{#each block.data.details.ports as |data|}}
+<li><b>{{data}}</b></li>
+{{/each}}
+{{else}}
+{{/if}}
+</div>
