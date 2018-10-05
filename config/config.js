@@ -32,8 +32,7 @@ module.exports = {
      * @optional
      */
     "styles": [
-        "./styles/shodan.less",
-        "./styles/exfoliate.less"
+        "./styles/shodan.less"
     ],
     /**
      * Provide custom component logic and template for rendering the integration details block.  If you do not
@@ -77,7 +76,7 @@ module.exports = {
         proxy: ''
     },
     logging: {
-        level: 'trace',  //trace, debug, info, warn, error, fatal
+        level: 'info',  //trace, debug, info, warn, error, fatal
     },
     /**
      * Options that are displayed to the user/admin in the Polarity integration user-interface.  Should be structured
