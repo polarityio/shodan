@@ -32,7 +32,8 @@ module.exports = {
      * @optional
      */
     "styles": [
-        "./styles/shodan.less"
+        "./styles/shodan.less",
+        "./styles/exfoliate.less"
     ],
     /**
      * Provide custom component logic and template for rendering the integration details block.  If you do not

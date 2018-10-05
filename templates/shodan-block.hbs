@@ -1,151 +1,150 @@
-<div class="dnsdball">
-    {{#each block.data.details.data as |item|}}
+<div class="p-non-exfoliate-outer-padding">
+{{#each block.data.details.data as |item|}}
 
-    <div class = "name">
-        {{#if item.ip_str}}
-        <i class = "fa fa-info-circle #ADADAD"></i><span class="type"> <b> IP: </b> </span>
+{{#if item.ip_str}}
+    <div>
+        {{fa-icon "info-circle"}} <span class="p-key">IP: </span>
         {{item.ip_str}}  <a href="https://www.shodan.io/host/{{item.ip_str}}">  (View in Shodan) </a>
-        {{/if}}
     </div>
-
-    <div class = "product">
-        {{#if item.product}}
-        <span class="counts"> Product: </span>
-        <b>{{item.product}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "isp">
-        {{#if item.isp}}
-        <span class="balis"> ISP: </span>
-        <b>{{item.isp}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "org">
-        {{#if item.org}}
-        <span class="Ctimefirst"> Org: </span>
-        <b>{{item.org}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "device">
-        {{#if item.devicetype}}
-        <span class="Ctimelast"> Device Type: </span>
-        <b>{{item.devicetype}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "hash">
-        {{#if item.hash}}
-        <span class="name"> Hash: </span>
-        <b>{{item.hash}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "transport">
-        {{#if item.version}}
-        <span class="name"> Version: </span>
-        <b>{{item.version}}</b>
-        {{/if}}
-    </div>
-
-
-
-    <div class = "os">
-        {{#if item.os}}
-        <span class="name"> OS: </span>
-        <b>{{item.os}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "hostnames">
-        {{#if item.hostnames}}
-        <span class="datas"> Hostnames: </span>
-        {{/if}}
-        {{#if item.hostnames}}
-        {{#each item.hostnames as |data|}}
-        <li><b>{{data}}</b></li>
-        {{/each}}
-        {{else}}
-        {{/if}}
-    </div>
-
-    <div class = "domains">
-        {{#if item.domains}}
-        <span class="datas"> Domains: </span>
-        {{/if}}
-        {{#if item.domains}}
-        {{#each item.domains as |data|}}
-        <li><b>{{data}}</b></li>
-        {{/each}}
-        {{else}}
-        {{/if}}
-    </div>
-
-    <div class = "fingerprint">
-        {{#if item.ssh.fingerprint}}
-        <span class="name"> SSH Fingerprint: </span>
-        <b>{{item.ssh.fingerprint}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "mac">
-        {{#if item.ssh.mac}}
-        <span class="name"> SSH MAC: </span>
-        <b>{{item.ssh.mac}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "cipher">
-        {{#if item.ssh.cipher}}
-        <span class="name"> cipher: </span>
-        <b>{{item.ssh.cipher}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "redirects">
-        {{#if item.http.redirects}}
-        <span class="datas"> Redirects: </span>
-        {{/if}}
-        {{#if item.http.redirects}}
-        {{#each item.http.redirects as |data|}}
-        <li><b>{{data}}</b></li>
-        {{/each}}
-        {{else}}
-        {{/if}}
-    </div>
-
-    <div class = "robots">
-        {{#if item.http.robots}}
-        <span class="name"> HTTP Robots: </span>
-        <b>{{item.http.robots}}</b>
-        {{/if}}
-    </div>
-
-    <div class = "servers">
-        {{#if item.http.servers}}
-        <span class="name"> HTTP Servers: </span>
-        <b>{{item.http.servers}}</b>
-        {{/if}}
-    </div>
-    {{/each}}
-</div>
-<div class = "asn">
-{{#if block.data.details.asn}}
-<span class="counts"> ASN: </span>
-<b>{{block.data.details.asn}}</b>
 {{/if}}
-</div>
 
-<div class = "ports">
-{{#if block.data.details.ports}}
-<span class="datas"> Ports: </span>
+{{#if item.product}}
+    <div>
+        <span class="p-key">Product: </span>
+        <span class="p-value">{{item.product}}</span>
+    </div>
 {{/if}}
-{{#if block.data.details.ports}}
-{{#each block.data.details.ports as |data|}}
-<li><b>{{data}}</b></li>
+
+{{#if item.isp}}
+    <div>
+        <span class="p-key">ISP: </span>
+        <span class="p-value">{{item.isp}}</span>
+    </div>
+{{/if}}
+
+{{#if item.org}}
+    <div>
+        <span class="p-key">Org: </span>
+        <span class="p-value">{{item.org}}</span>
+    </div>
+{{/if}}
+
+{{#if item.devicetype}}
+    <div>
+        <span class="p-key">Device Type: </span>
+        <span class="p-value">{{item.devicetype}}</span>
+    </div>
+{{/if}}
+
+{{#if item.hash}}
+    <div>
+        <span class="p-key">Hash: </span>
+        <span class="p-value">{{item.hash}}</span>
+    </div>
+{{/if}}
+
+{{#if item.version}}
+    <div>
+        <span class="p-key">Version: </span>
+        <span class="p-value">{{item.version}}</span>
+    </div>
+{{/if}}
+
+{{#if item.os}}
+    <div>
+        <span class="p-key">OS: </span>
+        <span class="p-value">{{item.os}}</span>
+    </div>
+{{/if}}
+
+{{#if item.ssh.fingerprint}}
+    <div>
+        <span class="p-key">SSH Fingerprint: </span>
+        <span class="p-value">{{item.ssh.fingerprint}}</span>
+    </div>
+{{/if}}
+
+{{#if item.ssh.mac}}
+    <div>
+        <span class="p-key">SSH MAC: </span>
+        <span class="p-value">{{item.ssh.mac}}</span>
+    </div>
+{{/if}}
+
+{{#if item.ssh.cipher}}
+    <div>
+        <span class="p-key">SSH Cipher: </span>
+        <span class="p-value">{{item.ssh.cipher}}</span>
+    </div>
+{{/if}}
+
+{{#if item.http.robots}}
+    <div>
+        <span class="p-key">HTTP Robots: </span>
+        <span class="p-value">{{item.http.robots}}</span>
+    </div>
+{{/if}}
+
+{{#if item.http.servers}}
+    <div>
+        <span class="p-key">HTTP Servers: </span>
+        <span class="p-value">{{item.http.servers}}</span>
+    </div>
+{{/if}}
+
+
+{{#if item.hostnames}}
+    <div class = "tags">
+      <h1 class="p-key">
+              {{fa-icon "globe"}} Hostnames
+      </h1>
+                {{#each item.hostnames as |data|}}
+                        <span class="section-tag">{{data}}</span>
+                {{/each}}
+    </div>
+{{/if}}
+
+{{#if item.domains}}
+    <div class = "tags">
+      <h1 class="p-key">
+              {{fa-icon "globe"}} Domains
+      </h1>
+                {{#each item.domains as |data|}}
+                        <span class="section-tag">{{data}}</span>
+                {{/each}}
+    </div>
+{{/if}}
+
+{{#if item.http.redirects}}
+    <div class = "tags">
+      <h1 class="p-key">
+              {{fa-icon "globe"}} HTTP Redirects
+      </h1>
+                {{#each item.http.redirects as |data|}}
+                        <span class="section-tag">{{data}}</span>
+                {{/each}}
+    </div>
+{{/if}}
+
 {{/each}}
-{{else}}
-{{/if}}
 </div>
+
+
+{{#if block.data.details.asn}}
+    <div>
+        <span class="p-key">ASN: </span>
+        <span class="p-value">{{block.data.details.asn}}</span>
+    </div>
+{{/if}}
+
+
+{{#if block.data.details.ports}}
+    <div class = "tags">
+      <h1 class="p-key">
+              {{fa-icon "globe"}} Ports
+      </h1>
+                {{#each block.data.details.ports as |data|}}
+                        <span class="section-tag">{{data}}</span>
+                {{/each}}
+    </div>
+{{/if}}
