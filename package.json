@@ -1,0 +1,10 @@
+{
+  "main": "./integration.js",
+  "name": "shodan",
+  "version": "3.0.0",
+  "private": true,
+  "dependencies": {
+    "request": "^2.88",
+    "async": "^2.6"
+  }
+}
