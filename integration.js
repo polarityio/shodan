@@ -22,7 +22,7 @@ function doLookup(entities, options, cb) {
   let lookupResults = [];
   let tasks = [];
 
-  Logger.trace(entities);
+  Logger.trace({ entities: entities }, 'doLookup');
 
   entities.forEach((entity) => {
     if (!entity.isPrivateIP && !IGNORED_IPS.has(entity.value)) {
@@ -33,19 +33,18 @@ function doLookup(entities, options, cb) {
         json: true
       };
 
-      Logger.debug({ uri: options }, 'Request URI');
-
       tasks.push(function(done) {
         requestWithDefaults(requestOptions, function(error, res, body) {
-          Logger.trace({ body: body, statusCode: res.statusCode }, 'Result of Lookup');
-
-          if (error) {
+          if (error || typeof res === 'undefined') {
+            Logger.error({ err: error }, 'HTTP Request Failed');
             done({
-                detail: 'HTTP Request Failed',
-                err: error
+              detail: 'HTTP Request Failed',
+              err: error
             });
             return;
           }
+
+          Logger.trace({ body: body }, 'Result of Lookup');
 
           if (res.statusCode === 200) {
             // we got data!
