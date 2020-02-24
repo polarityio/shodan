@@ -13,7 +13,6 @@ const limiter = new Bottleneck({
 let Logger;
 let requestWithDefaults;
 
-
 const IGNORED_IPS = new Set(["127.0.0.1", "255.255.255.255", "0.0.0.0"]);
 
 /**
@@ -36,11 +35,17 @@ function doLookup(entities, options, cb) {
         json: true
       };
 
-      limiter.submit(requestEntity, requestOptions, (err, result) => {
+      limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
         requestResults.push([err, result]);
         if (requestResults.length === entities.length) {
-          const [errs, results] = rotateResults(results);
-          if (errs.length) return cb(errs[0]);
+          const [errs, results] = rotateResults(requestResults);
+          const errors = errs.filter((i) => i);
+
+          if (errors.length)
+            return cb({
+              err: errors[0],
+              detail: errors[0].detail || "Error: Something with the Request Failed"
+            });
 
           const lookupResults = results.map(({ entity, body }) => ({
             entity,
@@ -57,7 +62,7 @@ function doLookup(entities, options, cb) {
   });
 }
 
-const requestEntity = (requestOptions, callback) =>
+const requestEntity = (entity, requestOptions, callback) =>
   requestWithDefaults(requestOptions, (err, res, body) => {
     if (err || typeof res === "undefined") {
       Logger.error({ err }, "HTTP Request Failed");
