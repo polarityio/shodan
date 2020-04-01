@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "bottleneck": "^2.19.5",
+    "lodash": "^4.17.15",
     "request": "^2.88"
   }
 }
