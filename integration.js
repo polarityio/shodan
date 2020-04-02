@@ -1,30 +1,34 @@
 'use strict';
 
 const request = require('request');
-const config = require('./config/config');
 const fs = require('fs');
 const Bottleneck = require('bottleneck');
 const _ = require('lodash');
+var cache = require('memory-cache');
 
-const limiter = new Bottleneck({
-  maxConcurrent: 1,
-  highWater: 15,
-  strategy: Bottleneck.strategy.OVERFLOW,
-  minTime: 1050
-});
+const config = require('./config/config');
+
+let bottlneckApiKeyCache = new cache.Cache();
 
 let Logger;
 let requestWithDefaults;
 
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
 
-/**
- *
- * @param entities
- * @param options
- * @param cb
- */
 function doLookup(entities, options, cb) {
+  let limiter = bottlneckApiKeyCache.get(options.apiKey);
+
+  if (!limiter) {
+    limiter = new Bottleneck({
+      id: options.apiKey,
+      maxConcurrent: 1,
+      highWater: 15,
+      strategy: Bottleneck.strategy.OVERFLOW,
+      minTime: 1050
+    });
+    bottlneckApiKeyCache.put(options.apiKey, limiter);
+  }
+
   let requestResults = [];
   let maxRequestQueueLimitHit = false;
   Logger.trace({ entities }, 'doLookup');
@@ -42,7 +46,7 @@ function doLookup(entities, options, cb) {
         requestResults.push([err, result]);
         if (_.isEmpty(err) && _.isEmpty(result)) {
           maxRequestQueueLimitHit = true;
-          cb({
+          return cb({
             err: {
               message:
                 `Entities: ${entities.map(({ value }) => value).join(', ')} ` +
@@ -52,8 +56,8 @@ function doLookup(entities, options, cb) {
           });
         }
 
-        if (!maxRequestQueueLimitHit && requestResults.length === entities.length) {
-          const [errs, results] = rotateResults(requestResults);
+        if (requestResults.length === entities.length) {
+          const [errs, results] = transpose2DArray(requestResults);
           const errors = errs.filter((err) => !_.isEmpty(err));
 
           if (errors.length) {
@@ -117,7 +121,8 @@ const requestEntity = (entity, requestOptions, callback) =>
     }
   });
 
-const rotateResults = (results) =>
+const transpose2DArray = (results) =>
+  // [[a,b],[a,b],[a,b]] -> [[a,a,a],[b,b,b]]
   results.reduce(
     (agg, [err, result]) => [
       [...agg[0], err],
@@ -148,6 +153,10 @@ function startup(logger) {
 
   if (typeof config.request.proxy === 'string' && config.request.proxy.length > 0) {
     defaults.proxy = config.request.proxy;
+  }
+
+  if (typeof config.request.rejectUnauthorized === 'boolean') {
+    requestOptions.rejectUnauthorized = config.request.rejectUnauthorized;
   }
 
   requestWithDefaults = request.defaults(defaults);
