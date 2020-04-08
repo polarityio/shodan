@@ -4,7 +4,7 @@ const request = require('request');
 const fs = require('fs');
 const Bottleneck = require('bottleneck');
 const _ = require('lodash');
-var cache = require('memory-cache');
+const cache = require('memory-cache');
 
 const config = require('./config/config');
 
