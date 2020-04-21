@@ -30,56 +30,65 @@ function doLookup(entities, options, cb) {
   }
 
   let requestResults = [];
-  let maxRequestQueueLimitHit = false;
   Logger.trace({ entities }, 'doLookup');
 
-  entities.forEach((entity) => {
-    if (!entity.isPrivateIP && !IGNORED_IPS.has(entity.value)) {
-      let requestOptions = {
-        uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
-        method: 'GET',
-        json: true
-      };
+  const validEntities = entities.filter(
+    (entity) => !entity.isPrivateIP && !IGNORED_IPS.has(entity.value)
+  );
 
-      limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
-        if (maxRequestQueueLimitHit) return;
-        requestResults.push([err, result]);
-        if (_.isEmpty(err) && _.isEmpty(result)) {
-          maxRequestQueueLimitHit = true;
+  validEntities.forEach((entity) => {
+    let requestOptions = {
+      uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
+      method: 'GET',
+      json: true
+    };
+
+    limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
+      const maxRequestQueueLimitHit =
+        (_.isEmpty(err) && _.isEmpty(result)) ||
+        (err && err.message === 'This job has been dropped by Bottleneck');
+
+      requestResults.push([
+        err,
+        maxRequestQueueLimitHit ? { ...result, entity, limitReached: true } : result
+      ]);
+
+      if (requestResults.length === validEntities.length) {
+        const [errs, results] = transpose2DArray(requestResults);
+        const errors = errs.filter(
+          (err) =>
+            !_.isEmpty(err) && err && err.message === 'This job has been dropped by Bottleneck'
+        );
+
+        if (errors.length) {
+          Logger.trace({ errors }, 'Something went wrong');
           return cb({
-            err: {
-              message:
-                `Entities: ${entities.map(({ value }) => value).join(', ')} ` +
-                'were not able to be searched.'
-            },
-            detail: 'Hit API request Limit. Try again Later'
+            err: errors[0],
+            detail: errors[0].detail || 'Error: Something with the Request Failed'
           });
         }
 
-        if (requestResults.length === entities.length) {
-          const [errs, results] = transpose2DArray(requestResults);
-          const errors = errs.filter((err) => !_.isEmpty(err));
+        const lookupResults = results
+          .filter((result) => !_.isEmpty(result))
+          .map(({ entity, body, limitReached }) =>
+            limitReached
+              ? {
+                  entity,
+                  isVolatile: true,
+                  data: { details: { limitReached, tags: ['Query Limit Hit'] } }
+                }
+              : {
+                  entity,
+                  data: body && {
+                    summary: [],
+                    details: body
+                  }
+                }
+          );
 
-          if (errors.length) {
-            Logger.trace({ errors }, 'Something went wrong');
-            return cb({
-              err: errors[0],
-              detail: errors[0].detail || 'Error: Something with the Request Failed'
-            });
-          }
-
-          const lookupResults = results.map(({ entity, body }) => ({
-            entity,
-            data: body && {
-              summary: [],
-              details: body
-            }
-          }));
-
-          cb(null, lookupResults);
-        }
-      });
-    }
+        cb(null, lookupResults);
+      }
+    });
   });
 }
 
@@ -131,6 +140,23 @@ const transpose2DArray = (results) =>
     [[], []]
   );
 
+const retryEntity = ({ data: { entity } }, options, callback) => 
+  doLookup([entity], options, (err, lookupResults) => {
+    if(err) return callback(err);
+
+    const lookupResult = lookupResults[0];
+
+    if (lookupResult && lookupResult.data && lookupResult.data.details) {
+      if (details.limitReached) {
+        callback({ title: 'Hit Query Limit', message: 'Query Limit Still in Effect' });
+      } else {
+        callback(null, details);
+      }
+    } else {
+      callback(null, { noResultsFound: true, tags: ['No Results Found'] });
+    }
+  });
+
 function startup(logger) {
   Logger = logger;
   let defaults = {};
@@ -180,5 +206,6 @@ function validateOptions(userOptions, cb) {
 module.exports = {
   doLookup,
   startup,
-  validateOptions
+  validateOptions,
+  onMessage: retryEntity
 };
