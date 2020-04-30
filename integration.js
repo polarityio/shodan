@@ -1,106 +1,161 @@
 'use strict';
 
 const request = require('request');
-const config = require('./config/config');
-const async = require('async');
 const fs = require('fs');
+const Bottleneck = require('bottleneck');
+const _ = require('lodash');
+const cache = require('memory-cache');
+
+const config = require('./config/config');
+
+let bottlneckApiKeyCache = new cache.Cache();
 
 let Logger;
 let requestWithDefaults;
 
-const MAX_PARALLEL_LOOKUPS = 10;
-
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
 
-/**
- *
- * @param entities
- * @param options
- * @param cb
- */
 function doLookup(entities, options, cb) {
-  let lookupResults = [];
-  let tasks = [];
+  let limiter = bottlneckApiKeyCache.get(options.apiKey);
 
-  Logger.trace({ entities: entities }, 'doLookup');
+  if (!limiter) {
+    limiter = new Bottleneck({
+      id: options.apiKey,
+      maxConcurrent: 1,
+      highWater: 15,
+      strategy: Bottleneck.strategy.OVERFLOW,
+      minTime: 1050
+    });
+    bottlneckApiKeyCache.put(options.apiKey, limiter);
+  }
 
-  entities.forEach((entity) => {
-    if (!entity.isPrivateIP && !IGNORED_IPS.has(entity.value)) {
-      //do the lookup
-      let requestOptions = {
-        uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
-        method: 'GET',
-        json: true
-      };
+  let requestResults = [];
+  Logger.trace({ entities }, 'doLookup');
 
-      tasks.push(function(done) {
-        requestWithDefaults(requestOptions, function(error, res, body) {
-          if (error || typeof res === 'undefined') {
-            Logger.error({ err: error }, 'HTTP Request Failed');
-            done({
-              detail: 'HTTP Request Failed',
-              err: error
-            });
-            return;
-          }
+  const validEntities = entities.filter(
+    (entity) => !entity.isPrivateIP && !IGNORED_IPS.has(entity.value)
+  );
 
-          Logger.trace({ body: body }, 'Result of Lookup');
+  validEntities.forEach((entity) => {
+    let requestOptions = {
+      uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
+      method: 'GET',
+      json: true
+    };
 
-          if (res.statusCode === 200) {
-            // we got data!
-            return done(null, {
-              entity: entity,
-              body: body
-            });
-          } else if (res.statusCode === 404) {
-            // no result found
-            return done(null, {
-              entity: entity,
-              body: null
-            });
-          } else if (res.statusCode === 503) {
-            // reached request limit
-            return done({
-              detail: 'Request Limit Reached'
-            });
-          } else {
-            return done({
-              detail: 'Unexpected HTTP Status Received',
-              httpStatus: res.statusCode,
-              body: body
-            });
-          }
-        });
+    limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
+      const maxRequestQueueLimitHit =
+        (_.isEmpty(err) && _.isEmpty(result)) ||
+        (err && err.message === 'This job has been dropped by Bottleneck');
+
+      requestResults.push([
+        err,
+        maxRequestQueueLimitHit ? { ...result, entity, limitReached: true } : result
+      ]);
+
+      if (requestResults.length === validEntities.length) {
+        const [errs, results] = transpose2DArray(requestResults);
+        const errors = errs.filter(
+          (err) =>
+            !_.isEmpty(err) && err && err.message === 'This job has been dropped by Bottleneck'
+        );
+
+        if (errors.length) {
+          Logger.trace({ errors }, 'Something went wrong');
+          return cb({
+            err: errors[0],
+            detail: errors[0].detail || 'Error: Something with the Request Failed'
+          });
+        }
+
+        const lookupResults = results
+          .filter((result) => !_.isEmpty(result))
+          .map(({ entity, body, limitReached }) =>
+            limitReached
+              ? {
+                  entity,
+                  isVolatile: true,
+                  data: { details: { limitReached, tags: ['Search Limit Reached'] } }
+                }
+              : {
+                  entity,
+                  data: body && {
+                    summary: [],
+                    details: body
+                  }
+                }
+          );
+
+        cb(null, lookupResults);
+      }
+    });
+  });
+}
+
+const requestEntity = (entity, requestOptions, callback) =>
+  requestWithDefaults(requestOptions, (err, res, body) => {
+    if (err || typeof res === 'undefined') {
+      Logger.error({ err }, 'HTTP Request Failed');
+      return callback({
+        detail: 'HTTP Request Failed',
+        err
+      });
+    }
+
+    Logger.trace({ body }, 'Result of Lookup');
+
+    if (res.statusCode === 200) {
+      // we got data!
+      return callback(null, {
+        entity,
+        body
+      });
+    } else if (res.statusCode === 404) {
+      // no result found
+      return callback(null, {
+        entity,
+        body: null
+      });
+    } else if (res.statusCode === 503) {
+      // reached request limit
+      return callback({
+        detail: 'Search Limit Reached'
+      });
+    } else {
+      return callback({
+        detail: 'Unexpected HTTP Status Received',
+        httpStatus: res.statusCode,
+        body
       });
     }
   });
 
-  async.parallelLimit(tasks, MAX_PARALLEL_LOOKUPS, (err, results) => {
-    if (err) {
-      cb(err);
-      return;
-    }
+const transpose2DArray = (results) =>
+  // [[a,b],[a,b],[a,b]] -> [[a,a,a],[b,b,b]]
+  results.reduce(
+    (agg, [err, result]) => [
+      [...agg[0], err],
+      [...agg[1], result]
+    ],
+    [[], []]
+  );
 
-    results.forEach((result) => {
-      if (result.body === null) {
-        lookupResults.push({
-          entity: result.entity,
-          data: null
-        });
+const retryEntity = ({ data: { entity } }, options, callback) =>
+  doLookup([entity], options, (err, lookupResults) => {
+    if(err) return callback(err);
+
+    const lookupResult = lookupResults[0];
+
+    if (lookupResult && lookupResult.data && lookupResult.data.details) {
+      if (lookupResult.data.details.limitReached) {
+        callback({ title: 'Search Limit Reached', message: 'Search Limit Still in Effect' });
       } else {
-        lookupResults.push({
-          entity: result.entity,
-          data: {
-            summary: [],
-            details: result.body
-          }
-        });
+        callback(null, lookupResult.data.details);
       }
-    });
-
-    cb(null, lookupResults);
+    } else {
+      callback(null, { noResultsFound: true, tags: ['No Results Found'] });
+    }
   });
-}
 
 function startup(logger) {
   Logger = logger;
@@ -126,6 +181,10 @@ function startup(logger) {
     defaults.proxy = config.request.proxy;
   }
 
+  if (typeof config.request.rejectUnauthorized === 'boolean') {
+    defaults.rejectUnauthorized = config.request.rejectUnauthorized;
+  }
+
   requestWithDefaults = request.defaults(defaults);
 }
 
@@ -145,7 +204,8 @@ function validateOptions(userOptions, cb) {
 }
 
 module.exports = {
-  doLookup: doLookup,
-  startup: startup,
-  validateOptions: validateOptions
+  doLookup,
+  startup,
+  validateOptions,
+  onMessage: retryEntity
 };
