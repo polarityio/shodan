@@ -1,7 +1,7 @@
 {
   "main": "./integration.js",
   "name": "shodan",
-  "version": "3.0.2-beta",
+  "version": "3.0.3-beta",
   "private": true,
   "dependencies": {
     "bottleneck": "^2.19.5",

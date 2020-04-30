@@ -16,7 +16,6 @@ polarity.export = PolarityComponent.extend({
       this.set('message', '');
       this.set('errorMessage', '');
       this.set('isRunning', true);
-      this.get('block').notifyPropertyChange('data');
 
       this.sendIntegrationMessage({ data: { entity: this.entity } })
         .then((newDetails) => {

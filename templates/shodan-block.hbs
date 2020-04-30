@@ -1,7 +1,7 @@
 {{#if details.limitReached}}
-    <h1 class="p-title">{{fa-icon "info-circle"}} Query Limit Reached</h1>
+    <h1 class="p-title">{{fa-icon "info-circle"}} Search Limit Reached</h1>
     <p>
-        The query for this entity in Shodan did not go through due to the API Query Limit.
+        This entity could not be searched as you've temporarily reached your Shodan Search Limit.  You can retry your search by pressing the "Try Again" button.
     </p>
     <div class="d-flex flex-row justify-content-between align-items-center">
         <div>
@@ -14,7 +14,7 @@
             class="p-btn btn btn-light mt-1"class="p-btn btn btn-light mt-1"
             disabled={{isRunning}}
         >
-            Try Again?
+            Try Again
         </button>
     </div>
     {{#if message}}
@@ -35,7 +35,7 @@
         </p>
     {{else}}
         {{#if details.ip_str}}
-            <a class="p-link" href="https://www.shodan.io/host/{{details.ip_str}}"> 
+            <a class="p-link" href="https://www.shodan.io/host/{{details.ip_str}}">
                 View in Shodan {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
             </a>
         {{/if}}

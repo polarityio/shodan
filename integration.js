@@ -75,7 +75,7 @@ function doLookup(entities, options, cb) {
               ? {
                   entity,
                   isVolatile: true,
-                  data: { details: { limitReached, tags: ['Query Limit Hit'] } }
+                  data: { details: { limitReached, tags: ['Search Limit Reached'] } }
                 }
               : {
                   entity,
@@ -119,7 +119,7 @@ const requestEntity = (entity, requestOptions, callback) =>
     } else if (res.statusCode === 503) {
       // reached request limit
       return callback({
-        detail: 'Request Limit Reached'
+        detail: 'Search Limit Reached'
       });
     } else {
       return callback({
@@ -140,17 +140,17 @@ const transpose2DArray = (results) =>
     [[], []]
   );
 
-const retryEntity = ({ data: { entity } }, options, callback) => 
+const retryEntity = ({ data: { entity } }, options, callback) =>
   doLookup([entity], options, (err, lookupResults) => {
     if(err) return callback(err);
 
     const lookupResult = lookupResults[0];
 
     if (lookupResult && lookupResult.data && lookupResult.data.details) {
-      if (details.limitReached) {
-        callback({ title: 'Hit Query Limit', message: 'Query Limit Still in Effect' });
+      if (lookupResult.data.details.limitReached) {
+        callback({ title: 'Search Limit Reached', message: 'Search Limit Still in Effect' });
       } else {
-        callback(null, details);
+        callback(null, lookupResult.data.details);
       }
     } else {
       callback(null, { noResultsFound: true, tags: ['No Results Found'] });

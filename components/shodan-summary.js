@@ -2,6 +2,7 @@
 
 polarity.export = PolarityComponent.extend({
   details: Ember.computed.alias('block.data.details'),
+  entity: Ember.computed.alias('block.entity'),
   summaryTags: Ember.computed('details.tags', function() {
     let summaryTags = [];
 
@@ -38,5 +39,30 @@ polarity.export = PolarityComponent.extend({
       summaryTags.push('No Tags');
     }
     return summaryTags;
-  })
+  }),
+  actions: {
+    tryAgain: function() {
+      const outerThis = this;
+
+      this.set('message', '');
+      this.set('errorMessage', '');
+      this.set('isRunning', true);
+
+      this.sendIntegrationMessage({ data: { entity: this.entity } })
+        .then((newDetails) => {
+          outerThis.set('message', 'Success!');
+          outerThis.set('details', newDetails);
+        })
+        .catch((err) => {
+          outerThis.set(
+            'errorMessage',
+            `Failed on Retry: ${err.message || err.title || err.description || 'Unknown Reason'}`
+          );
+        })
+        .finally(() => {
+          this.set('isRunning', false);
+          outerThis.get('block').notifyPropertyChange('data');
+        });
+    }
+  }
 });
