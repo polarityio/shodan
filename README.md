@@ -1,10 +1,14 @@
 # Polarity Shodan Integration
 
-Polarity's Shodan integration gives users access to automated IPv4 and IPv6 lookups against the Shodan Host REST API.
+![mode:on demand only](https://img.shields.io/badge/mode-on%20demand%20only-blue.svg)
+
+Polarity's Shodan integration gives users access to automated IPv4 and IPv6 lookups against the Shodan Host REST API.  The Shodan REST API restricts searches to 1 per second.  The integration will automatically throttle lookups to stay below this limit and will queue up to 15 search requests per API key.  If the queue is full, you will receive back a response indicating that the queue is full and will have the option to rerun the search from the Overlay Window.  
 
 Please see [https://www.shodan.io/](https://www.shodan.io/) for more information.
 
-![image](https://user-images.githubusercontent.com/306319/46555899-e36b6400-c8b2-11e8-9d31-5dc3e34559bc.png)
+| ![image](assets/overlay.png)  |
+|---|
+|*Shodan Example* |
 
 ## Shodan Integration Options
 
