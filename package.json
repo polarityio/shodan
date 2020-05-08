@@ -7,6 +7,12 @@
     "bottleneck": "^2.19.5",
     "lodash": "^4.17.15",
     "memory-cache": "^0.2.0",
-    "request": "^2.88"
-  }
+    "request": "^2.88",
+    "snyk": "^1.319.2"
+  },
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "snyk": true
 }
