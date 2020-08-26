@@ -1,5 +1,5 @@
 {{#each summaryTags as |tag|}}
-    <span class="integration-summary-tag integration-background-color integration-border-color">
+    <span {{on "click" (optional this.scrollToIntegration)}} class="integration-summary-tag integration-background-color integration-border-color">
        <span class="acronym integration-text-bold-color">{{block.acronym}}</span>
       {{#if (eq tag "Search Limit Reached")}}
         <span class="integration-text-color">{{fa-icon "exclamation"}} {{tag}} <button class="summary-try-again-button" {{action "tryAgain" bubbles=false}}>retry</button></span>
