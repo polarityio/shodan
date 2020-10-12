@@ -30,6 +30,10 @@ polarity.export = PolarityComponent.extend({
       summaryTags.push(`Org: ${this.get('details.org')}`);
     }
 
+    if (this.get('details.ports') && this.get('details.ports').length) {
+      summaryTags.push(`Ports: ${this.get('details.ports').join(', ')}`);
+    }
+
     let tags = this.get('details.tags');
     if (Array.isArray(tags)) {
       summaryTags = summaryTags.concat(tags);
