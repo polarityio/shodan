@@ -57,7 +57,7 @@ function doLookup(entities, options, cb) {
         const [errs, results] = transpose2DArray(requestResults);
         const errors = errs.filter(
           (err) =>
-            !_.isEmpty(err) && err && err.message === 'This job has been dropped by Bottleneck'
+            !_.isEmpty(err)
         );
 
         if (errors.length) {
@@ -115,6 +115,11 @@ const requestEntity = (entity, requestOptions, callback) =>
       return callback(null, {
         entity,
         body: null
+      });
+    } else if (res.statusCode === 401) {
+      // no result found
+      return callback({
+        detail: 'Unauthorized: The provided API key is invalid.'
       });
     } else if (res.statusCode === 503) {
       // reached request limit
