@@ -265,14 +265,14 @@
                             {{#if item.ssl.cert.issued}}
                                 <div>
                                     <span class="p-key">Valid Not Before: </span>
-                                    <span class="p-value">{{moment-format item.ssl.cert.issued "YYYY-MM-DD HH:mm:ss z" "YYYYMMDDHHmmssz"}}</span>
+                                    <span class="p-value">{{moment-format item.ssl.cert.issued "YYYY-MM-DD HH:mm:ss z" "YYYYMMDDHHmmssz" timeZone=timezone}}</span>
                                 </div>
                             {{/if}}
                 ​
                             {{#if item.ssl.cert.expires}}
                                 <div>
                                     <span class="p-key">Valid Not After: </span>
-                                    <span class="p-value">{{moment-format item.ssl.cert.expires "YYYY-MM-DD HH:mm:ss z" "YYYYMMDDHHmmssz"}}</span>
+                                    <span class="p-value">{{moment-format item.ssl.cert.expires "YYYY-MM-DD HH:mm:ss z" "YYYYMMDDHHmmssz" timeZone=timezone}}</span>
                                 </div>
                             {{/if}}
                 ​
