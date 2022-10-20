@@ -1,6 +1,6 @@
 'use strict';
 
-const request = require('request');
+const request = require('postman-request');
 const fs = require('fs');
 const Bottleneck = require('bottleneck');
 const _ = require('lodash');
