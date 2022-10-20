@@ -1,12 +1,12 @@
 {
   "main": "./integration.js",
   "name": "shodan",
-  "version": "3.2.4-beta",
+  "version": "3.3.0",
   "private": true,
   "dependencies": {
     "bottleneck": "^2.19.5",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "memory-cache": "^0.2.0",
-    "request": "^2.88.2"
+    "postman-request": "^2.88.1-postman.31"
   }
 }
