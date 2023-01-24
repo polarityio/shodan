@@ -1,0 +1,47 @@
+{
+  "name": "Shodan",
+  "acronym": "SHO",
+  "defaultColor": "light-pink",
+  "description": "IP Lookup Integration for Shodan",
+  "entityTypes": ["IPv4", "IPv6"],
+  "styles": ["./styles/shodan.less"],
+  "block": {
+    "component": {
+      "file": "./components/shodan-block.js"
+    },
+    "template": {
+      "file": "./templates/shodan-block.hbs"
+    }
+  },
+  "summary": {
+    "component": {
+      "file": "./components/shodan-summary.js"
+    },
+    "template": {
+      "file": "./templates/shodan-summary.hbs"
+    }
+  },
+  "request": {
+    "cert": "",
+    "key": "",
+    "passphrase": "",
+    "ca": "",
+    "proxy": "",
+    "rejectUnauthorized": true
+  },
+  "logging": {
+    "level": "info"
+  },
+  "onDemandOnly": true,
+  "options": [
+    {
+      "key": "apiKey",
+      "name": "Shodan API Key",
+      "description": "Your Shodan API Key.",
+      "default": "",
+      "type": "password",
+      "userCanEdit": true,
+      "adminOnly": false
+    }
+  ]
+}
