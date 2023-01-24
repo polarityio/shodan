@@ -1,14 +1,10 @@
 {
   "name": "Shodan",
   "acronym": "SHO",
+  "defaultColor": "light-pink",
   "description": "IP Lookup Integration for Shodan",
-  "entityTypes": [
-    "IPv4",
-    "IPv6"
-  ],
-  "styles": [
-    "./styles/shodan.less"
-  ],
+  "entityTypes": ["IPv4", "IPv6"],
+  "styles": ["./styles/shodan.less"],
   "block": {
     "component": {
       "file": "./components/shodan-block.js"
