@@ -49,14 +49,6 @@ module.exports = {
       file: './templates/shodan-block.hbs'
     }
   },
-  summary: {
-    component: {
-      file: './components/shodan-summary.js'
-    },
-    template: {
-      file: './templates/shodan-summary.hbs'
-    }
-  },
   request: {
     // Provide the path to your certFile. Leave an empty string to ignore this option.
     // Relative paths are relative to the VT integration's root directory
@@ -76,7 +68,7 @@ module.exports = {
     rejectUnauthorized: true
   },
   logging: {
-    level: 'info' //trace, debug, info, warn, error, fatal
+    level: 'trace' //trace, debug, info, warn, error, fatal
   },
   onDemandOnly: true,
   /**

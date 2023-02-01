@@ -15,7 +15,7 @@ let requestWithDefaults;
 
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
 
-function doLookup(entities, options, cb) {
+function doLookup (entities, options, cb) {
   let limiter = bottlneckApiKeyCache.get(options.apiKey);
 
   if (!limiter) {
@@ -55,10 +55,9 @@ function doLookup(entities, options, cb) {
 
       if (requestResults.length === validEntities.length) {
         const [errs, results] = transpose2DArray(requestResults);
-        const errors = errs.filter(
-          (err) =>
-            !_.isEmpty(err)
-        );
+        const errors = errs.filter((err) => !_.isEmpty(err));
+
+        Logger.trace({ results }, 'Results');
 
         if (errors.length) {
           Logger.trace({ errors }, 'Something went wrong');
@@ -68,24 +67,32 @@ function doLookup(entities, options, cb) {
           });
         }
 
-        const lookupResults = results
-          .filter((result) => !_.isEmpty(result))
-          .map(({ entity, body, limitReached }) =>
-            limitReached
-              ? {
-                  entity,
-                  isVolatile: true,
-                  data: { details: { limitReached, tags: ['Search Limit Reached'] } }
-                }
-              : {
-                  entity,
-                  data: body && {
-                    summary: [],
-                    details: body
-                  }
-                }
-          );
+        // filter out empty results
+        const filteredResults = results.filter((result) => !_.isEmpty(result));
 
+        const lookupResults = filteredResults.map((result) => {
+          Logger.trace({ result }, 'Result');
+
+          if (result.limitReached) {
+            return {
+              entity: result.entity,
+              isVolatile: true,
+              data: {
+                details: { limitReached: result.limitReached, tags: ['Search Limit Reached'] }
+              }
+            };
+          } else {
+            return {
+              entity: result.entity,
+              data: result.body && {
+                summary: createSummary(result),
+                details: result.body
+              }
+            };
+          }
+        });
+
+        Logger.trace({ lookupResults }, 'Lookup Results');
         cb(null, lookupResults);
       }
     });
@@ -147,7 +154,7 @@ const transpose2DArray = (results) =>
 
 const retryEntity = ({ data: { entity } }, options, callback) =>
   doLookup([entity], options, (err, lookupResults) => {
-    if(err) return callback(err);
+    if (err) return callback(err);
 
     const lookupResult = lookupResults[0];
 
@@ -155,6 +162,8 @@ const retryEntity = ({ data: { entity } }, options, callback) =>
       if (lookupResult.data.details.limitReached) {
         callback({ title: 'Search Limit Reached', message: 'Search Limit Still in Effect' });
       } else {
+        Logger.trace({ lookupResult }, 'Retry Result');
+    
         callback(null, lookupResult.data.details);
       }
     } else {
@@ -162,7 +171,7 @@ const retryEntity = ({ data: { entity } }, options, callback) =>
     }
   });
 
-function startup(logger) {
+function startup (logger) {
   Logger = logger;
   let defaults = {};
 
@@ -193,7 +202,7 @@ function startup(logger) {
   requestWithDefaults = request.defaults(defaults);
 }
 
-function validateOptions(userOptions, cb) {
+function validateOptions (userOptions, cb) {
   let errors = [];
   if (
     typeof userOptions.apiKey.value !== 'string' ||
@@ -207,6 +216,116 @@ function validateOptions(userOptions, cb) {
 
   cb(null, errors);
 }
+
+/**
+ * Creates the Summary Tags (currently just tags for ports)
+ * @param apiResponse
+ * @returns {string[]}
+ */
+const createSummary = (apiResponse) => {
+  Logger.trace({ apiResponse }, 'Creating Summary Tags');
+
+  const tags = createPortTags(apiResponse);
+  Logger.trace({ tags }, 'Summary Tags Created');
+
+  if (Array.isArray(apiResponse.body.tags)) {
+    const apiTags = apiResponse.body.tags;
+
+    apiTags.slice(0, 5).forEach((tag) => {
+      tags.push(tag);
+    });
+
+    if (apiTags.length > 5) {
+      tags.push(`+${apiTags.length - 5} more tags`);
+    }
+  }
+
+  Logger.trace({ tags }, 'final tags');
+  return tags;
+};
+
+/**
+ * Create the Port Summary Tags
+ *
+ * Sort the ports when displaying from smallest to largest number
+ *
+ * If there are less than or equal to 10 ports just show the ports like we currently do (however, they will now be sorted)
+ * If there are greater than 10 ports do the following:
+ *   1. Sort the ports and ensure we're displaying ports under 1024 before ports over 1024.
+ *   2. Display the first 10 ports less than 1024 and then text that says +X more.
+ *   These are called Reserved Ports (note that reserved ports are 0 to 1023 inclusive)
+ *
+ * Example:
+ * ```
+ * Reserved Ports: 1, 2, 3, 4, 25, 80, 443, 500, 600, 601, +5 more
+ * ```
+ * Add a second tag that provides a count of how many ports greater than or equal to 1024 are open
+ * (these are called ephemeral ports).
+ *
+ * Example:
+ * ```
+ * 679 ephemeral ports
+ * ```
+ * @param apiResponse
+ * @returns {[string]}
+ */
+const createPortTags = (apiResponse) => {
+  Logger.trace({ apiResponse }, 'Creating Port Tags');
+  const portTags = [];
+  const ports = Array.from(apiResponse.body.ports);
+
+  // sort the ports from smallest to largest
+  ports.sort((a, b) => {
+    return a - b;
+  });
+
+  if (ports.length === 0) {
+    return [`No Open Ports`];
+  } else if (ports.length <= 10) {
+    return [`Ports: ${ports.join(', ')}`];
+  } else {
+    let splitIndex = ports.length;
+    for (let i = 0; i < ports.length; i++) {
+      if (ports[i] > 1024) {
+        splitIndex = i;
+        break;
+      }
+    }
+
+    // ports array is for reserved ports
+    // ephemeralPorts is for ephemeral ports ( ports > 1024)
+    const ephemeralPorts = ports.splice(splitIndex);
+
+    const numEphemeralPorts = ephemeralPorts.length;
+    const firstTenReservedPorts = ports.slice(0, 10);
+    //const firstFiveEphemeralPorts = ephemeralPorts.slice(0, 5);
+    const extraReservedCount = ports.length > 10 ? ports.length - 10 : 0;
+    //const extraEphemeralCount = ephemeralPorts.length > 5 ? ephemeralPorts.length - 5 : 0;
+
+    if (firstTenReservedPorts.length > 0) {
+      portTags.push(
+        `Reserved Ports: ${firstTenReservedPorts.join(', ')}${
+          extraReservedCount > 0 ? ', +' + extraReservedCount + ' more' : ''
+        }`
+      );
+    }
+
+    if (numEphemeralPorts > 0) {
+      portTags.push(`${numEphemeralPorts} ephemeral ports`);
+    }
+    //
+    // if (firstFiveEphemeralPorts.length > 0) {
+    //   portTags.push(
+    //     `Ephemeral Ports: ${firstFiveEphemeralPorts.join(', ')}${
+    //       extraEphemeralCount > 0 ? ', +' + extraEphemeralCount + ' more' : ''
+    //     }`
+    //   );
+    // }
+
+    Logger.trace({ portTags }, 'Port Tags Created');
+    return portTags;
+  }
+};
 
 module.exports = {
   doLookup,
