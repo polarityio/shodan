@@ -15,7 +15,7 @@ let requestWithDefaults;
 
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
 
-function doLookup (entities, options, cb) {
+function doLookup(entities, options, cb) {
   let limiter = bottlneckApiKeyCache.get(options.apiKey);
 
   if (!limiter) {
@@ -40,7 +40,8 @@ function doLookup (entities, options, cb) {
     let requestOptions = {
       uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
       method: 'GET',
-      json: true
+      json: true,
+      maxResponseSize: 2000000 // 2MB in bytes
     };
 
     limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
@@ -57,8 +58,6 @@ function doLookup (entities, options, cb) {
         const [errs, results] = transpose2DArray(requestResults);
         const errors = errs.filter((err) => !_.isEmpty(err));
 
-        Logger.trace({ results }, 'Results');
-
         if (errors.length) {
           Logger.trace({ errors }, 'Something went wrong');
           return cb({
@@ -71,13 +70,12 @@ function doLookup (entities, options, cb) {
         const filteredResults = results.filter((result) => !_.isEmpty(result));
 
         const lookupResults = filteredResults.map((result) => {
-          Logger.trace({ result }, 'Result');
-
           if (result.limitReached) {
             return {
               entity: result.entity,
               isVolatile: true,
               data: {
+                summary: ['Search Limit Reached'],
                 details: { limitReached: result.limitReached, tags: ['Search Limit Reached'] }
               }
             };
@@ -99,12 +97,24 @@ function doLookup (entities, options, cb) {
   });
 }
 
+const parseErrorToReadableJSON = (error) =>
+  JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+
 const requestEntity = (entity, requestOptions, callback) =>
   requestWithDefaults(requestOptions, (err, res, body) => {
     if (err || typeof res === 'undefined') {
+      err = parseErrorToReadableJSON(err);
       Logger.error({ err }, 'HTTP Request Failed');
+      let detail = 'HTTP Request Failed';
+      // For some entities Shodan will return a massive response object which we should not try to handle
+      // We set the maximum using the `maxResponseSize` request option and then check for this very specific
+      // error message to display an error to the user.
+      // See: https://github.com/postmanlabs/postman-request/pull/41/files
+      if (err.message === 'Maximum response size reached') {
+        detail = `Shodan response payload is too large (> 2MB) for ${entity.value}.  Results cannot be displayed`;
+      }
       return callback({
-        detail: 'HTTP Request Failed',
+        detail,
         err
       });
     }
@@ -163,15 +173,15 @@ const retryEntity = ({ data: { entity } }, options, callback) =>
         callback({ title: 'Search Limit Reached', message: 'Search Limit Still in Effect' });
       } else {
         Logger.trace({ lookupResult }, 'Retry Result');
-    
-        callback(null, lookupResult.data.details);
+
+        callback(null, lookupResult.data);
       }
     } else {
       callback(null, { noResultsFound: true, tags: ['No Results Found'] });
     }
   });
 
-function startup (logger) {
+function startup(logger) {
   Logger = logger;
   let defaults = {};
 
@@ -202,7 +212,7 @@ function startup (logger) {
   requestWithDefaults = request.defaults(defaults);
 }
 
-function validateOptions (userOptions, cb) {
+function validateOptions(userOptions, cb) {
   let errors = [];
   if (
     typeof userOptions.apiKey.value !== 'string' ||
