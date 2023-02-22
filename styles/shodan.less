@@ -7,7 +7,7 @@
 }
 .summary-try-again-button {
   padding: 0px 3px;
-  background-color: rgba(0,0,0,.3);
+  background-color: rgba(0, 0, 0, 0.3);
   border: 0;
   color: #fff;
   text-transform: lowercase;
@@ -15,25 +15,25 @@
   border-radius: 2px;
 }
 
-.summary-try-again-button:hover{
-  background-color: rgba(0,0,0,.4);
+.summary-try-again-button:hover {
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
-.external-icon{
+.external-icon {
   font-size: 8px;
   margin: 0px 0px 1px 3px;
 }
 
-.data-block{
+.data-block {
   border-left: 1px solid #eee;
   padding-left: 5px;
   margin-left: 0px;
 }
-div.service-pill{
+div.service-pill {
   display: inline-block;
   line-height: 2em;
 
-  span.port{
+  span.port {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
     border-left: 1px solid gray;
@@ -44,7 +44,7 @@ div.service-pill{
     margin: 0px;
   }
 
-  span.transport{
+  span.transport {
     border-top: 1px solid gray;
     border-bottom: 1px solid gray;
     border-left: 1px solid gray;
@@ -54,7 +54,7 @@ div.service-pill{
     background-color: lighten(#ff915f, 20%);
   }
 
-  span.service{
+  span.service {
     padding: 1px 3px;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
@@ -66,7 +66,6 @@ div.service-pill{
   }
 }
 
-
 pre {
   overflow-y: scroll;
   overflow-x: auto;
@@ -77,8 +76,8 @@ pre {
   background-color: #eee;
 }
 
-.p-title{
-  a{
+.p-title {
+  a {
     margin-left: 3px;
   }
 }
@@ -87,4 +86,46 @@ pre {
   width: 5px;
   height: 5px;
   background-color: rgba(0, 0, 0, 0);
+}
+
+.copy-btn-container {
+  flex: 1 1 auto;
+  position: relative;
+
+  .copy-btn {
+    font-size: 12px;
+    padding: 0px;
+    height: 20px;
+
+    :active {
+      color: darken(#388e3c, 5%);
+    }
+  }
+
+  .copy-success-message {
+    position: absolute;
+    top: 30px;
+    right: 0px;
+    background-color: rgb(222, 226, 230);
+    width: 150px;
+    padding: 5px;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+
+    .copy-success-icon {
+      color: #aaa;
+    }
+
+    &.visible {
+      visibility: visible;
+      opacity: 1;
+      transition: opacity 0.25s linear;
+    }
+
+    &.hidden {
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s 0.25s, opacity 0.25s linear;
+    }
+  }
 }
