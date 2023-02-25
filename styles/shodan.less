@@ -90,7 +90,9 @@ pre {
 
 .copy-btn-container {
   flex: 1 1 auto;
-  position: relative;
+  position: absolute;
+  right: 10px;
+  top: 7px;
 
   .copy-btn {
     font-size: 12px;
@@ -104,13 +106,12 @@ pre {
 
   .copy-success-message {
     position: absolute;
-    top: 30px;
+    top: 20px;
     right: 0px;
     background-color: rgb(222, 226, 230);
-    width: 150px;
+    min-width: max-content;;
     padding: 5px;
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
+    border-radius: 3px;
 
     .copy-success-icon {
       color: #aaa;
