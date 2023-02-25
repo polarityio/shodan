@@ -305,12 +305,9 @@ const createPortTags = (apiResponse) => {
     // ports array is for reserved ports
     // ephemeralPorts is for ephemeral ports ( ports > 1024)
     const ephemeralPorts = ports.splice(splitIndex);
-
     const numEphemeralPorts = ephemeralPorts.length;
     const firstTenReservedPorts = ports.slice(0, 10);
-    //const firstFiveEphemeralPorts = ephemeralPorts.slice(0, 5);
     const extraReservedCount = ports.length > 10 ? ports.length - 10 : 0;
-    //const extraEphemeralCount = ephemeralPorts.length > 5 ? ephemeralPorts.length - 5 : 0;
 
     if (firstTenReservedPorts.length > 0) {
       portTags.push(
@@ -323,14 +320,6 @@ const createPortTags = (apiResponse) => {
     if (numEphemeralPorts > 0) {
       portTags.push(`${numEphemeralPorts} ephemeral ports`);
     }
-    //
-    // if (firstFiveEphemeralPorts.length > 0) {
-    //   portTags.push(
-    //     `Ephemeral Ports: ${firstFiveEphemeralPorts.join(', ')}${
-    //       extraEphemeralCount > 0 ? ', +' + extraEphemeralCount + ' more' : ''
-    //     }`
-    //   );
-    // }
 
     Logger.trace({ portTags }, 'Port Tags Created');
     return portTags;
