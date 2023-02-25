@@ -127,16 +127,16 @@
       {{/each}}
 
       <div class="p-action mt-2" {{action "toggleDetails"}}>
-        {{#if showDetails}}
-          {{fa-icon "caret-down" fixedWidth=true}}
+        {{#if block._state.showDetails}}
+          {{fa-icon "caret-up" fixedWidth=true}}
           Hide Details
         {{else}}
-          {{fa-icon "caret-up" fixedWidth=true}}
+          {{fa-icon "caret-down" fixedWidth=true}}
           View Details
         {{/if}}
       </div>
 
-      {{#if showDetails}}
+      {{#if block._state.showDetails}}
         {{#each details.data as |item index|}}
           <div class="data-block">
             {{#if item.product}}

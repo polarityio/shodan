@@ -11,15 +11,19 @@ polarity.export = PolarityComponent.extend({
   message: '',
   errorMessage: null,
   isRunning: false,
-  init () {
+  init() {
     let array = new Uint32Array(5);
     this.set('uniqueIdPrefix', window.crypto.getRandomValues(array).join(''));
+    if (!this.get('block._state')) {
+      this.set('block._state', {});
+      this.set('block._state.showDetails', false);
+    }
 
     this._super(...arguments);
   },
   actions: {
     toggleDetails: function () {
-      this.toggleProperty('showDetails');
+      this.toggleProperty('block._state.showDetails');
     },
     tryAgain: function () {
       const outerThis = this;
@@ -46,8 +50,7 @@ polarity.export = PolarityComponent.extend({
     },
     copyData: function () {
       const savedDetails = this.get('block._state.showDetails');
-
-      console.log(this.get('details'));
+      this.set('block._state.showDetails', true);
 
       Ember.run.scheduleOnce(
         'afterRender',
@@ -59,7 +62,7 @@ polarity.export = PolarityComponent.extend({
       Ember.run.scheduleOnce('destroy', this, this.restoreCopyState, savedDetails);
     }
   },
-  copyElementToClipboard (element) {
+  copyElementToClipboard(element) {
     window.getSelection().removeAllRanges();
     let range = document.createRange();
 
@@ -68,14 +71,8 @@ polarity.export = PolarityComponent.extend({
     document.execCommand('copy');
     window.getSelection().removeAllRanges();
   },
-  getElementRance (element) {
-    let range = document.createRange();
-    range.selectNode(typeof element === 'string' ? document.getElementById(element) : element);
-    return range;
-  },
-  restoreCopyState (savedDetails) {
+  restoreCopyState(savedDetails) {
     this.set('showCopyMessage', true);
-
     this.set('block._state.showDetails', savedDetails);
 
     setTimeout(() => {
