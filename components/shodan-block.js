@@ -38,10 +38,15 @@ polarity.export = PolarityComponent.extend({
           outerThis.set('details', data.details);
         })
         .catch((err) => {
-          outerThis.set(
-            'errorMessage',
-            `Failed on Retry: ${err.message || err.title || err.description || 'Unknown Reason'}`
-          );
+          console.error(err.errors);
+          let message =
+            (err.meta && err.meta.message) ||
+            err.message ||
+            err.title ||
+            err.description ||
+            'Unknown Reason';
+
+          outerThis.set('errorMessage', `Failed on Retry: ${message}`);
         })
         .finally(() => {
           this.set('isRunning', false);
