@@ -1,10 +1,10 @@
+<<<<<<< HEAD
 polarity.export = PolarityComponent.extend({
   data: Ember.computed.alias('block.data'),
   details: Ember.computed.alias('block.data.details'),
   timezone: Ember.computed('Intl', function () {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   }),
-  showDetails: false,
   showCopyMessage: false,
   uniqueIdPrefix: '',
   entity: Ember.computed.alias('block.entity'),
@@ -33,9 +33,10 @@ polarity.export = PolarityComponent.extend({
       this.set('isRunning', true);
 
       this.sendIntegrationMessage({ data: { entity: this.entity } })
-        .then((newDetails) => {
+        .then((data) => {
           outerThis.set('message', 'Success!');
-          outerThis.set('details', newDetails);
+          outerThis.set('block.data.summary', data.summary);
+          outerThis.set('details', data.details);
         })
         .catch((err) => {
           outerThis.set(
