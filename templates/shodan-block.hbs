@@ -1,304 +1,335 @@
 {{#if details.limitReached}}
-    <h1 class="p-title">{{fa-icon "info-circle"}} Search Limit Reached</h1>
-    <p>
-        This entity could not be searched as you've temporarily reached your Shodan Search Limit.  You can retry your search by pressing the "Try Again" button.
-    </p>
-    <div class="d-flex flex-row justify-content-between align-items-center">
-        <div>
-            {{#if isRunning}}
-                {{fa-icon "spinner-third" fixedWidth=true spin=true}} Running
-            {{/if}}
-        </div>
-        <button
-            {{action "tryAgain"}}
-            class="p-btn btn btn-light mt-1"class="p-btn btn btn-light mt-1"
-            disabled={{isRunning}}
-        >
-            Try Again
-        </button>
+  <h1 class="p-title">{{fa-icon "info-circle"}} Search Limit Reached</h1>
+  <p>
+    This entity could not be searched as you've temporarily reached your Shodan Search Limit. You
+    can retry your search by pressing the "Try Again" button.
+  </p>
+  <div class="d-flex flex-row justify-content-between align-items-center">
+    <div>
+      {{#if isRunning}}
+        {{fa-icon "spinner-third" fixedWidth=true spin=true}}
+        Running
+      {{/if}}
     </div>
-    {{#if message}}
-        <div class="alert alert-info mt-1">
-            {{message}}
-        </div>
-    {{/if}}
-    {{#if errorMessage}}
-        <div class="alert alert-danger mt-1">
-            {{errorMessage}}
-        </div>
-    {{/if}}
+    <button
+      {{action "tryAgain"}}
+      class="p-btn btn btn-light mt-1"
+      class="p-btn btn btn-light mt-1"
+      disabled={{isRunning}}
+    >
+      Try Again
+    </button>
+  </div>
+  {{#if message}}
+    <div class="alert alert-info mt-1">
+      {{message}}
+    </div>
+  {{/if}}
+  {{#if errorMessage}}
+    <div class="alert alert-danger mt-1">
+      {{errorMessage}}
+    </div>
+  {{/if}}
 {{else}}
-    {{#if details.noResultsFound}}
-        <h1 class="p-title">{{fa-icon "info-circle"}} No Results Found</h1>
-        <p>
-            This Entity does not exist in Shodan.
-        </p>
-    {{else}}
-        {{#if details.ip_str}}
-            <a class="p-link" href="https://www.shodan.io/host/{{details.ip_str}}">
-                View in Shodan {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
-            </a>
-        {{/if}}
+  {{#if details.noResultsFound}}
+    <h1 class="p-title">{{fa-icon "info-circle"}} No Results Found</h1>
+    <p>
+      This Entity does not exist in Shodan.
+    </p>
+  {{else}}
+    <li class="d-flex align-items-center justify-content-end copy-btn-container">
+      <button
+        class="btn copy-btn p-action"
+        {{action "copyData"}}
+        title="Copy Information to Clipboard"
+      >
+        {{fa-icon icon="clipboard" fixedWidth=true}}
+      </button>
+      <div class="copy-success-message {{if showCopyMessage 'visible' 'hidden'}}">
+        {{fa-icon icon="check" fixedWidth=true class="copy-success-icon"}}
+        Copied Information.
+      </div>
+    </li>
 
-        <h1 class="p-title">{{fa-icon "globe"}} Summary</h1>
-
-        {{#if details.city}}
-            <div>
-                <span class="p-key">City: </span>
-                <span class="p-value">{{details.city}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.country_name}}
-            <div>
-                <span class="p-key">Country: </span>
-                <span class="p-value">{{details.country_name}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.org}}
-            <div>
-                <span class="p-key">Org: </span>
-                <span class="p-value">{{details.org}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.isp}}
-            <div>
-                <span class="p-key">ISP: </span>
-                <span class="p-value">{{details.isp}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.last_update}}
-            <div>
-                <span class="p-key">Last Update: </span>
-                <span class="p-value">{{details.last_update}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.hostnames}}
-            <div>
-                <span class="p-key">Hostnames: </span>
-                <span class="p-value">{{join ', ' details.hostnames}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.asn}}
-            <div>
-                <span class="p-key">ASN: </span>
-                <span class="p-value">{{details.asn}}</span>
-            </div>
-        {{/if}}
-
-        {{#if details.ports}}
-            <h1 class="p-title">{{fa-icon "th-large" fixedWidth=true}} Ports </h1>
-            {{#each details.ports as |data|}}
-                <span class="section-tag">{{data}}</span>
-            {{/each}}
-        {{/if}}
-
-        <h1 class="p-title">{{fa-icon "th-list" fixedWidth=true}} Services</h1>
-
-
-        {{#each details.data as |item index|}}
-            <div class="service-pill">
-                <span class="port">{{item.port}}</span><span class="transport">{{item.transport}}</span><span class="service">{{item._shodan.module}}</span>
-            </div>
-        {{/each}}
-
-        <div class="p-action mt-2" {{action "toggleDetails"}}>
-            {{#if showDetails}}
-                {{fa-icon "caret-down" fixedWidth=true}} Hide Details
-            {{else}}
-                {{fa-icon "caret-up" fixedWidth=true}} View Details
-            {{/if}}
-        </div>
-
-
-        {{#if showDetails}}
-            {{#each details.data as |item index|}}
-                <div class="data-block">
-                    {{#if item.product}}
-                        <h1 class="p-title">{{fa-icon "box" fixedWidth=true}} {{item.product}}</h1>
-                    {{else}}
-                        <h1 class="p-title">{{fa-icon "box" fixedWidth=true}} {{item._shodan.module}}</h1>
-                    {{/if}}
-                        <div class="service-pill">
-                            <span class="port">{{item.port}}</span><span class="transport">{{item.transport}}</span><span class="service">{{item._shodan.module}}</span>
-                        </div>
-                    {{#if item.isp}}
-                        <div>
-                            <span class="p-key">ISP: </span>
-                            <span class="p-value">{{item.isp}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.org}}
-                        <div>
-                            <span class="p-key">Org: </span>
-                            <span class="p-value">{{item.org}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.devicetype}}
-                        <div>
-                            <span class="p-key">Device Type: </span>
-                            <span class="p-value">{{item.devicetype}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.hash}}
-                        <div>
-                            <span class="p-key">Hash: </span>
-                            <span class="p-value">{{item.hash}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.version}}
-                        <div>
-                            <span class="p-key">Version: </span>
-                            <span class="p-value">{{item.version}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.os}}
-                        <div>
-                            <span class="p-key">OS: </span>
-                            <span class="p-value">{{item.os}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.ssh.fingerprint}}
-                        <div>
-                            <span class="p-key">SSH Fingerprint: </span>
-                            <span class="p-value">{{item.ssh.fingerprint}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.ssh.mac}}
-                        <div>
-                            <span class="p-key">SSH MAC: </span>
-                            <span class="p-value">{{item.ssh.mac}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.ssh.cipher}}
-                        <div>
-                            <span class="p-key">SSH Cipher: </span>
-                            <span class="p-value">{{item.ssh.cipher}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.http.servers}}
-                        <div>
-                            <span class="p-key">HTTP Servers: </span>
-                            <span class="p-value">{{item.http.servers}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.hostnames}}
-                        <div>
-                            <span class="p-key">Hostnames: </span>
-                            <span class="p-value">{{join ', ' item.hostnames}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.domains}}
-                        <div>
-                            <span class="p-key">Domains: </span>
-                            <span class="p-value">{{join ', ' item.domains}}</span>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.http.robots}}
-                        <div>
-                            <span class="p-key">HTTP Robots: </span>
-                            <pre>{{item.http.robots}}</pre>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.data}}
-                        <div>
-                            <span class="p-key">Data: </span>
-                            <pre>{{item.data}}</pre>
-                        </div>
-                    {{/if}}
-        
-                    {{#if item.ssl.cert}}
-                        <h1 class="p-title">{{fa-icon "lock"}} Certificate Details</h1>
-            
-                        <div class="p-container">
-                            {{#if (eq item.ssl.cert.version 2)}}
-                                <div>
-                                    <span class="p-key">Version: </span>
-                                    <span class="p-value">3 (0x2)</span>
-                                </div>
-                                {{else}}
-                                <div>
-                                    <span class="p-key">Version: </span>
-                                    <span class="p-value">{{item.ssl.cert.version}}</span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.sig_alg}}
-                                <div>
-                                    <span class="p-key">Signature Algorithm: </span>
-                                    <span class="p-value">{{item.ssl.cert.sig_alg}}</span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.issuer}}
-                                <div>
-                                    <span class="p-key">Issuer: </span>
-                                    <span class="p-value">C={{item.ssl.cert.issuer.C}}, O={{item.ssl.cert.issuer.O}}, CN={{item.ssl.cert.issuer.CN}}</span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.issued}}
-                                <div>
-                                    <span class="p-key">Valid Not Before: </span>
-                                    <span class="p-value">{{moment-format item.ssl.cert.issued "YYYY-MM-DD HH:mm:ss z" "YYYYMMDDHHmmssz" timeZone=timezone}}</span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.expires}}
-                                <div>
-                                    <span class="p-key">Valid Not After: </span>
-                                    <span class="p-value">{{moment-format item.ssl.cert.expires "YYYY-MM-DD HH:mm:ss z" "YYYYMMDDHHmmssz" timeZone=timezone}}</span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.subject}}
-                                <div>
-                                    <span class="p-key">Subject: </span>
-                                    <span class="p-value">
-                                        C={{item.ssl.cert.subject.C}},
-                                        ST={{item.ssl.cert.subject.ST}},
-                                        L={{item.ssl.cert.subject.L}},
-                                        0={{item.ssl.cert.subject.O}},
-                                        CN={{item.ssl.cert.subject.CN}}
-                                    </span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.pubkey.type}}
-                                <div>
-                                    <span class="p-key">Subject Public Key Algorithm: </span>
-                                    <span class="p-value">{{item.ssl.cert.pubkey.type}}</span>
-                                </div>
-                            {{/if}}
-                
-                            {{#if item.ssl.cert.pubkey.bits}}
-                                <div>
-                                    <span class="p-key">Subject Public Key Length: </span>
-                                    <span class="p-value">{{item.ssl.cert.pubkey.bits}} bit</span>
-                                </div>
-                            {{/if}}
-                        </div>
-                    {{/if}}
-                </div>
-            {{/each}}
-        {{/if}}
+    {{#if details.ip_str}}
+      <a class="p-link" href="https://www.shodan.io/host/{{details.ip_str}}">
+        View in Shodan
+        {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+      </a>
     {{/if}}
+    <div id={{concat "shodan-container-" uniqueIdPrefix}}>
+      <h1 class="p-title">{{fa-icon "globe"}} Summary</h1>
+
+      {{#if details.city}}
+        <div>
+          <span class="p-key">City: </span>
+          <span class="p-value">{{details.city}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.country_name}}
+        <div>
+          <span class="p-key">Country: </span>
+          <span class="p-value">{{details.country_name}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.org}}
+        <div>
+          <span class="p-key">Org: </span>
+          <span class="p-value">{{details.org}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.isp}}
+        <div>
+          <span class="p-key">ISP: </span>
+          <span class="p-value">{{details.isp}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.last_update}}
+        <div>
+          <span class="p-key">Last Update: </span>
+          <span class="p-value">{{details.last_update}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.hostnames}}
+        <div>
+          <span class="p-key">Hostnames: </span>
+          <span class="p-value">{{join ", " details.hostnames}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.asn}}
+        <div>
+          <span class="p-key">ASN: </span>
+          <span class="p-value">{{details.asn}}</span>
+        </div>
+      {{/if}}
+
+      {{#if details.ports}}
+        <h1 class="p-title">{{fa-icon "th-large" fixedWidth=true}} Ports </h1>
+        {{#each details.ports as |data|}}
+          <span class="section-tag">{{data}}</span>
+        {{/each}}
+      {{/if}}
+
+      <h1 class="p-title">{{fa-icon "th-list" fixedWidth=true}} Services</h1>
+
+      {{#each details.data as |item index|}}
+        <div class="service-pill">
+          <span class="port">{{item.port}}</span><span
+            class="transport"
+          >{{item.transport}}</span><span class="service">{{item._shodan.module}}</span>
+        </div>
+      {{/each}}
+
+      <div class="p-action mt-2" {{action "toggleDetails"}}>
+        {{#if block._state.showDetails}}
+          {{fa-icon "caret-up" fixedWidth=true}}
+          Hide Details
+        {{else}}
+          {{fa-icon "caret-down" fixedWidth=true}}
+          View Details
+        {{/if}}
+      </div>
+
+      {{#if block._state.showDetails}}
+        {{#each details.data as |item index|}}
+          <div class="data-block">
+            {{#if item.product}}
+              <h1 class="p-title">{{fa-icon "box" fixedWidth=true}} {{item.product}}</h1>
+            {{else}}
+              <h1 class="p-title">{{fa-icon "box" fixedWidth=true}} {{item._shodan.module}}</h1>
+            {{/if}}
+            <div class="service-pill">
+              <span class="port">{{item.port}}</span><span
+                class="transport"
+              >{{item.transport}}</span><span class="service">{{item._shodan.module}}</span>
+            </div>
+            {{#if item.isp}}
+              <div>
+                <span class="p-key">ISP: </span>
+                <span class="p-value">{{item.isp}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.org}}
+              <div>
+                <span class="p-key">Org: </span>
+                <span class="p-value">{{item.org}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.devicetype}}
+              <div>
+                <span class="p-key">Device Type: </span>
+                <span class="p-value">{{item.devicetype}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.hash}}
+              <div>
+                <span class="p-key">Hash: </span>
+                <span class="p-value">{{item.hash}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.version}}
+              <div>
+                <span class="p-key">Version: </span>
+                <span class="p-value">{{item.version}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.os}}
+              <div>
+                <span class="p-key">OS: </span>
+                <span class="p-value">{{item.os}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.ssh.fingerprint}}
+              <div>
+                <span class="p-key">SSH Fingerprint: </span>
+                <span class="p-value">{{item.ssh.fingerprint}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.ssh.mac}}
+              <div>
+                <span class="p-key">SSH MAC: </span>
+                <span class="p-value">{{item.ssh.mac}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.ssh.cipher}}
+              <div>
+                <span class="p-key">SSH Cipher: </span>
+                <span class="p-value">{{item.ssh.cipher}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.http.servers}}
+              <div>
+                <span class="p-key">HTTP Servers: </span>
+                <span class="p-value">{{item.http.servers}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.hostnames}}
+              <div>
+                <span class="p-key">Hostnames: </span>
+                <span class="p-value">{{join ", " item.hostnames}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.domains}}
+              <div>
+                <span class="p-key">Domains: </span>
+                <span class="p-value">{{join ", " item.domains}}</span>
+              </div>
+            {{/if}}
+
+            {{#if item.http.robots}}
+              <div>
+                <span class="p-key">HTTP Robots: </span>
+                <pre>{{item.http.robots}}</pre>
+              </div>
+            {{/if}}
+
+            {{#if item.data}}
+              <div>
+                <span class="p-key">Data: </span>
+                <pre>{{item.data}}</pre>
+              </div>
+            {{/if}}
+
+            {{#if item.ssl.cert}}
+              <h1 class="p-title">{{fa-icon "lock"}} Certificate Details</h1>
+
+              <div class="p-container">
+                {{#if (eq item.ssl.cert.version 2)}}
+                  <div>
+                    <span class="p-key">Version: </span>
+                    <span class="p-value">3 (0x2)</span>
+                  </div>
+                {{else}}
+                  <div>
+                    <span class="p-key">Version: </span>
+                    <span class="p-value">{{item.ssl.cert.version}}</span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.sig_alg}}
+                  <div>
+                    <span class="p-key">Signature Algorithm: </span>
+                    <span class="p-value">{{item.ssl.cert.sig_alg}}</span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.issuer}}
+                  <div>
+                    <span class="p-key">Issuer: </span>
+                    <span class="p-value">C={{item.ssl.cert.issuer.C}}, O={{item.ssl.cert.issuer.O}},
+                      CN={{item.ssl.cert.issuer.CN}}</span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.issued}}
+                  <div>
+                    <span class="p-key">Valid Not Before: </span>
+                    <span class="p-value">{{moment-format
+                        item.ssl.cert.issued
+                        "YYYY-MM-DD HH:mm:ss z"
+                        "YYYYMMDDHHmmssz"
+                        timeZone=timezone
+                      }}</span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.expires}}
+                  <div>
+                    <span class="p-key">Valid Not After: </span>
+                    <span class="p-value">{{moment-format
+                        item.ssl.cert.expires
+                        "YYYY-MM-DD HH:mm:ss z"
+                        "YYYYMMDDHHmmssz"
+                        timeZone=timezone
+                      }}</span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.subject}}
+                  <div>
+                    <span class="p-key">Subject: </span>
+                    <span class="p-value">
+                      C={{item.ssl.cert.subject.C}}, ST={{item.ssl.cert.subject.ST}}, L={{item.ssl.cert.subject.L}},
+                      0={{item.ssl.cert.subject.O}}, CN={{item.ssl.cert.subject.CN}}
+                    </span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.pubkey.type}}
+                  <div>
+                    <span class="p-key">Subject Public Key Algorithm: </span>
+                    <span class="p-value">{{item.ssl.cert.pubkey.type}}</span>
+                  </div>
+                {{/if}}
+
+                {{#if item.ssl.cert.pubkey.bits}}
+                  <div>
+                    <span class="p-key">Subject Public Key Length: </span>
+                    <span class="p-value">{{item.ssl.cert.pubkey.bits}} bit</span>
+                  </div>
+                {{/if}}
+              </div>
+            {{/if}}
+          </div>
+        {{/each}}
+      {{/if}}
+    </div>
+  {{/if}}
 {{/if}}
