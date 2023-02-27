@@ -13,14 +13,6 @@
       "file": "./templates/shodan-block.hbs"
     }
   },
-  "summary": {
-    "component": {
-      "file": "./components/shodan-summary.js"
-    },
-    "template": {
-      "file": "./templates/shodan-summary.hbs"
-    }
-  },
   "request": {
     "cert": "",
     "key": "",
