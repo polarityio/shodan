@@ -36,18 +36,40 @@ function doLookup(entities, options, cb) {
     (entity) => !entity.isPrivateIP && !IGNORED_IPS.has(entity.value)
   );
 
+  let requestOptions;
   validEntities.forEach((entity) => {
-    let requestOptions = {
-      uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
-      method: 'GET',
-      json: true,
-      maxResponseSize: 2000000 // 2MB in bytes
-    };
+    if (entity.type === 'IPv4CIDR') {
+      requestOptions = {
+        uri:
+          'https://api.shodan.io/shodan/host/search?key=' +
+          options.apiKey +
+          '&query=net:' +
+          entity.value +
+          ';has_vuln=true;',
+        method: 'GET',
+        json: true,
+        maxResponseSize: 10000000 // 10MB in bytes
+      };
+    } else {
+      requestOptions = {
+        uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
+        method: 'GET',
+        json: true,
+        maxResponseSize: 2000000 // 2MB in bytes
+      };
+    }
+
+    Logger.trace({ requestOptions }, 'Request Options');
 
     limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
       const maxRequestQueueLimitHit =
         (_.isEmpty(err) && _.isEmpty(result)) ||
         (err && err.message === 'This job has been dropped by Bottleneck');
+
+      if (entity.type === 'IPv4CIDR' && result && result.body) {
+        // return just the first result for CIDR lookups for now
+        result.body = result.body.matches[0];
+      }
 
       requestResults.push([
         err,
@@ -282,7 +304,7 @@ const createSummary = (apiResponse) => {
 const createPortTags = (apiResponse) => {
   Logger.trace({ apiResponse }, 'Creating Port Tags');
   const portTags = [];
-  const ports = Array.from(apiResponse.body.ports);
+  const ports = Array.from(apiResponse.body.ports || [apiResponse.body.port] || []);
 
   // sort the ports from smallest to largest
   ports.sort((a, b) => {
@@ -327,8 +349,8 @@ const createPortTags = (apiResponse) => {
 };
 
 module.exports = {
-  doLookup,
   startup,
+  doLookup,
   validateOptions,
   onMessage: retryEntity
 };
