@@ -280,6 +280,9 @@ const assembleCIDRResults = (apiResponse) => {
     });
   });
 
+  // Add total Vuln to results
+  resultsBody['totalVuln'] = apiResponse.body.total;
+
   return { entity: apiResponse.entity, body: resultsBody };
 };
 
@@ -305,6 +308,8 @@ const createSummary = (apiResponse) => {
       tags.push(`+${apiTags.length - 5} more tags`);
     }
   }
+
+  if (apiResponse.body.totalVuln) tags.push(`Vulnerabilities: ${apiResponse.body.totalVuln}`);
 
   Logger.trace({ tags }, 'final tags');
   return tags;
