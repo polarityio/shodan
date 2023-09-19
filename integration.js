@@ -3,8 +3,21 @@
 const request = require('postman-request');
 const fs = require('fs');
 const Bottleneck = require('bottleneck');
-const _ = require('lodash');
-const { flow } = require('lodash/fp');
+const {
+  flow,
+  get,
+  partition,
+  isArray,
+  isEmpty,
+  join,
+  map,
+  size,
+  identity,
+  sortBy,
+  toArray,
+  values,
+  take
+} = require('lodash/fp');
 const cache = require('memory-cache');
 
 const config = require('./config/config');
@@ -15,6 +28,7 @@ let Logger;
 let requestWithDefaults;
 
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
+const MAX_FACET_RESULTS = 1000;
 
 function doLookup(entities, options, cb) {
   let limiter = bottlneckApiKeyCache.get(options.apiKey);
@@ -41,19 +55,23 @@ function doLookup(entities, options, cb) {
   validEntities.forEach((entity) => {
     if (entity.type === 'IPv4CIDR') {
       requestOptions = {
-        uri:
-          'https://api.shodan.io/shodan/host/search?key=' +
-          options.apiKey +
-          '&query=net:' +
-          entity.value +
-          ';has_vuln=true;',
+        uri: 'https://api.shodan.io/shodan/host/search',
+        qs: {
+          key: options.apiKey,
+          query: `net:${entity.value}`,
+          facets: `vuln:${MAX_FACET_RESULTS},port:${MAX_FACET_RESULTS},ip:${MAX_FACET_RESULTS},org:${MAX_FACET_RESULTS},product:${MAX_FACET_RESULTS}`
+        },
         method: 'GET',
         json: true,
-        maxResponseSize: 2000000 // 2MB in bytes
+        maxResponseSize: 10000000 // 10MB in bytes
       };
     } else {
       requestOptions = {
-        uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
+        uri: 'https://api.shodan.io/shodan/host/',
+        qs: {
+          key: options.apiKey,
+          ip: entity.value
+        },
         method: 'GET',
         json: true,
         maxResponseSize: 2000000 // 2MB in bytes
@@ -64,11 +82,10 @@ function doLookup(entities, options, cb) {
 
     limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
       const maxRequestQueueLimitHit =
-        (_.isEmpty(err) && _.isEmpty(result)) ||
+        (isEmpty(err) && isEmpty(result)) ||
         (err && err.message === 'This job has been dropped by Bottleneck');
 
       if (entity.type === 'IPv4CIDR' && result && result.body) {
-        // Assemble the results into a single object
         result = assembleCIDRResults(result);
       }
 
@@ -79,7 +96,7 @@ function doLookup(entities, options, cb) {
 
       if (requestResults.length === validEntities.length) {
         const [errs, results] = transpose2DArray(requestResults);
-        const errors = errs.filter((err) => !_.isEmpty(err));
+        const errors = errs.filter((err) => !isEmpty(err));
 
         if (errors.length) {
           Logger.trace({ errors }, 'Something went wrong');
@@ -89,8 +106,7 @@ function doLookup(entities, options, cb) {
           });
         }
 
-        // filter out empty results
-        const filteredResults = results.filter((result) => !_.isEmpty(result));
+        const filteredResults = results.filter((result) => !isEmpty(result));
 
         const lookupResults = filteredResults.map((result) => {
           if (result.limitReached) {
@@ -258,32 +274,11 @@ const assembleCIDRResults = (apiResponse) => {
     };
   }
 
-  let resultsBody = {
-    ...apiResponse.body.matches[0].location,
-    ip_str: apiResponse.body.matches[0].ip_str,
-    data: [apiResponse.body.matches[0]],
-    ports: [apiResponse.body.matches[0].port]
+  let resultsFacets = {
+    ...apiResponse.body.facets
   };
-  delete resultsBody.port;
 
-  apiResponse.body.matches.slice(1).forEach((match) => {
-    resultsBody['data'] = resultsBody['data'].concat([match]);
-
-    Object.keys(match).forEach((key) => {
-      if (key === 'port') {
-        if (!resultsBody['ports'].includes(match[key])) {
-          resultsBody['ports'] = resultsBody['ports'].concat([match[key]]);
-        }
-      } else if (Array.isArray(match[key])) {
-        resultsBody[key] = (resultsBody[key] || []).concat(match[key]);
-      }
-    });
-  });
-
-  // Add total Vuln to results
-  resultsBody['totalVuln'] = apiResponse.body.total;
-
-  return { entity: apiResponse.entity, body: resultsBody };
+  return { entity: apiResponse.entity, body: resultsFacets, limitReached: false };
 };
 
 /**
@@ -340,52 +335,43 @@ const createSummary = (apiResponse) => {
  * @param apiResponse
  * @returns {[string]}
  */
+
 const createPortTags = (apiResponse) => {
-  // if aipResponse is array, then we have multiple results
   Logger.trace({ apiResponse }, 'Creating Port Tags');
-  const portTags = [];
-  const ports = Array.from(apiResponse.body.ports || [apiResponse.body.port] || []);
 
-  // sort the ports from smallest to largest
-  ports.sort((a, b) => {
-    return a - b;
-  });
+  const getPorts = flow(get('body.port'), map('value'));
 
-  if (ports.length === 0) {
+  const ports = flow(
+    getPorts,
+    (data) => (isArray(data) ? data : values(data)),
+    toArray,
+    sortBy(identity)
+  )(apiResponse);
+
+  if (isEmpty(ports)) {
     return [`No Open Ports`];
-  } else if (ports.length <= 10) {
-    return [`Ports: ${ports.join(', ')}`];
-  } else {
-    let splitIndex = ports.length;
-    for (let i = 0; i < ports.length; i++) {
-      if (ports[i] > 1024) {
-        splitIndex = i;
-        break;
-      }
-    }
-
-    // ports array is for reserved ports
-    // ephemeralPorts is for ephemeral ports ( ports > 1024)
-    const ephemeralPorts = ports.splice(splitIndex);
-    const numEphemeralPorts = ephemeralPorts.length;
-    const firstTenReservedPorts = ports.slice(0, 10);
-    const extraReservedCount = ports.length > 10 ? ports.length - 10 : 0;
-
-    if (firstTenReservedPorts.length > 0) {
-      portTags.push(
-        `Reserved Ports: ${firstTenReservedPorts.join(', ')}${
-          extraReservedCount > 0 ? ', +' + extraReservedCount + ' more' : ''
-        }`
-      );
-    }
-
-    if (numEphemeralPorts > 0) {
-      portTags.push(`${numEphemeralPorts} ephemeral ports`);
-    }
-
-    Logger.trace({ portTags }, 'Port Tags Created');
-    return portTags;
   }
+
+  const [reservedPorts, ephemeralPorts] = partition((port) => port <= 1024)(ports);
+
+  var portTags = [];
+
+  if (!isEmpty(reservedPorts)) {
+    const visibleReservedPorts = take(10)(reservedPorts);
+    const hiddenCount = Math.max(size(reservedPorts) - 10, 0);
+    const visibleText = join(', ')(visibleReservedPorts);
+
+    portTags.push(
+      `Reserved Ports: ${visibleText}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`
+    );
+  }
+
+  if (!isEmpty(ephemeralPorts)) {
+    portTags.push(`${size(ephemeralPorts)} ephemeral ports`);
+  }
+
+  Logger.trace({ portTags }, 'Port Tags Created');
+  return portTags;
 };
 
 module.exports = {
