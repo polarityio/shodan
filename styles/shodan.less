@@ -6,6 +6,26 @@
   display: inline-block;
 }
 
+.scrollable-block {
+  position: relative;
+  overflow: hidden;
+  min-height: 10px;
+  max-height: 150px;
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 3px;
+}
+
+.scrollable-content {
+  position: relative;
+  overflow-y: scroll;
+  height: 100%;
+  margin-top: 5px;
+  padding: 7px 0px 0px 0px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
 .summary-try-again-button {
   padding: 0px 3px;
   background-color: rgba(0, 0, 0, 0.3);
@@ -23,6 +43,16 @@
 .external-icon {
   font-size: 8px;
   margin: 0px 0px 1px 3px;
+}
+
+.p-link {
+  text-decoration: none !important;
+  transition: color 0.2s, text-decoration 0.2s !important;
+}
+
+.p-link:hover {
+  color: #7e5deb;
+  text-decoration: underline !important;
 }
 
 .p-block {
