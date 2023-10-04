@@ -8,17 +8,21 @@
 
 .scrollable-block {
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   min-height: 10px;
   max-height: 150px;
-  margin-top: 10px;
+  margin-bottom: 5px;
   width: 100%;
+  padding: 3px 0px 3px 0px;
+  background-color: #f9f9f9;
   border-radius: 3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.7) transparent;
 }
 
 .scrollable-content {
   position: relative;
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 100%;
   margin-top: 5px;
   padding: 7px 0px 0px 0px;

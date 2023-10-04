@@ -38,43 +38,38 @@
       {{fa-icon 'globe'}} Summary
     </h1>
     {{#if details.ip}}
-      <div class='scrollable-block'>
-        <div>
-          <span class='p-key'>
-            IP:
-          </span>
-        </div>
-        <div class='scrollable-content'>
-          <ul>
-            {{#each details.ip as |ip|}}
-              <li>
-                <a class='p-link' href='https://www.shodan.io/host/{{ip.value}}'>
-                  {{ip.value}} {{fa-icon
-                    'external-link-square'
-                    fixedWidth=true
-                    class='external-icon'
-                  }}
-                </a>
-              </li>
-            {{/each}}
-          </ul>
-        </div>
-      </div>
-    {{else}}
-      <div class='scrollable-block'>
+      <div>
         <span class='p-key'>
           IP:
         </span>
+      </div>
+      <div class='scrollable-block'>
+        <ul>
+          {{#each details.ip as |ip|}}
+            <li>
+              <a class='p-link' href='https://www.shodan.io/host/{{ip.value}}'>
+                {{ip.value}} {{fa-icon 'external-link-square' fixedWidth=true class='external-icon'
+                }}
+              </a>
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+    {{else}}
+      <span class='p-key'>
+        IP:
+      </span>
+      <div class='scrollable-block'>
         <span class='p-value'>
           No IPs given for this CIDR.
         </span>
       </div>
     {{/if}}
     {{#if details.org}}
+      <span class='p-key'>
+        Org:
+      </span>
       <div class='scrollable-block'>
-        <span class='p-key'>
-          Org:
-        </span>
         <div class='scrollable-content'>
           <ul>
             {{#each details.org as |org|}}
@@ -89,20 +84,20 @@
         </div>
       </div>
     {{else}}
+      <span class='p-key'>
+        Org:
+      </span>
       <div class='scrollable-block'>
-        <span class='p-key'>
-          Org:
-        </span>
         <span class='p-value'>
           No Orgs given for this CIDR.
         </span>
       </div>
     {{/if}}
     {{#if details.product}}
+      <span class='p-key'>
+        Product:
+      </span>
       <div class='scrollable-block'>
-        <span class='p-key'>
-          Product:
-        </span>
         <div class='scrollable-content'>
           <ul>
             {{#each details.product as |product|}}
@@ -117,20 +112,20 @@
         </div>
       </div>
     {{else}}
+      <span class='p-key'>
+        Product:
+      </span>
       <div class='scrollable-block'>
-        <span class='p-key'>
-          Product:
-        </span>
         <span class='p-value'>
           No Products given for this CIDR.
         </span>
       </div>
     {{/if}}
     {{#if details.vuln}}
+      <span class='p-key'>
+        Vulnerabilities:
+      </span>
       <div class='scrollable-block'>
-        <span class='p-key'>
-          Vulnerabilities:
-        </span>
         <div class='scrollable-content'>
           <span class='p-value'>
             <ul>
@@ -144,10 +139,10 @@
         </div>
       </div>
     {{else}}
+      <span class='p-key'>
+        Vulnerabilities:
+      </span>
       <div class='scrollable-block'>
-        <span class='p-key'>
-          Vulnerabilities:
-        </span>
         <span class='p-value'>
           No Vulnerabilities given for this CIDR.
         </span>
