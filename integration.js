@@ -286,10 +286,7 @@ const assembleCIDRResults = (apiResponse) => {
  * @returns {string[]}
  */
 const createSummary = (apiResponse) => {
-  Logger.trace({ apiResponse }, 'Creating Summary Tags');
-
   const tags = createPortTags(apiResponse);
-  Logger.trace({ tags }, 'Summary Tags Created');
 
   if (Array.isArray(apiResponse.body.tags)) {
     const apiTags = apiResponse.body.tags;
@@ -336,7 +333,6 @@ const createSummary = (apiResponse) => {
  */
 
 const createPortTags = (apiResponse) => {
-  Logger.trace({ apiResponse }, 'Creating Port Tags');
   let getPorts;
 
   if (Array.isArray(get('body.ports'))) {
@@ -344,7 +340,7 @@ const createPortTags = (apiResponse) => {
   } else {
     getPorts = flow(get('body.port'), map('value'));
   }
-  
+
   const ports = flow(
     getPorts,
     (data) => (isArray(data) ? data : values(data)),
