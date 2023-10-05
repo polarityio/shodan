@@ -337,9 +337,14 @@ const createSummary = (apiResponse) => {
 
 const createPortTags = (apiResponse) => {
   Logger.trace({ apiResponse }, 'Creating Port Tags');
+  let getPorts;
 
-  const getPorts = flow(get('body.port'), map('value'));
-
+  if (Array.isArray(get('body.ports'))) {
+    getPorts = get('body.ports');
+  } else {
+    getPorts = flow(get('body.port'), map('value'));
+  }
+  
   const ports = flow(
     getPorts,
     (data) => (isArray(data) ? data : values(data)),
