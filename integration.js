@@ -67,10 +67,9 @@ function doLookup(entities, options, cb) {
       };
     } else {
       requestOptions = {
-        uri: 'https://api.shodan.io/shodan/host/',
+        uri: `https://api.shodan.io/shodan/host/${entity.value}`,
         qs: {
-          key: options.apiKey,
-          ip: entity.value
+          key: options.apiKey
         },
         method: 'GET',
         json: true,
