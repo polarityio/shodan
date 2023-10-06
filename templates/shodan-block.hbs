@@ -35,14 +35,10 @@
 {{else}}
   {{#if (eq entity.type "IPv4CIDR")}}
     <h1 class="p-title">
-      {{fa-icon "globe"}} Summary
+      {{fa-icon icon="location-arrow" fixedWidth=true}}
+      IP Addresses
     </h1>
     {{#if details.ip}}
-      <div>
-        <span class="p-key">
-          IP:
-        </span>
-      </div>
       <div class="scrollable-block">
         <ul>
           {{#each details.ip as |ip|}}
@@ -56,92 +52,77 @@
         </ul>
       </div>
     {{else}}
-      <span class="p-key">
-        IP:
-      </span>
       <div class="scrollable-block">
         <span class="p-value">
           No IPs given for this CIDR.
         </span>
       </div>
     {{/if}}
+    <h1 class="p-title">
+      {{fa-icon icon="sitemap" fixedWidth=true}}
+      Organizations
+    </h1>
     {{#if details.org}}
-      <span class="p-key">
-        Org:
-      </span>
       <div class="scrollable-block">
-        <div class="scrollable-content">
-          <ul>
-            {{#each details.org as |org|}}
-              <li>
-                <a class="p-link" href="https://beta.shodan.io/search?query={{org.value}}">
-                  {{org.value}}
-                  {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
-                </a>
-              </li>
-            {{/each}}
-          </ul>
-        </div>
+        <ul>
+          {{#each details.org as |org|}}
+            <li>
+              <a class="p-link" href="https://beta.shodan.io/search?query={{org.value}}">
+                {{org.value}}
+                {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+              </a>
+            </li>
+          {{/each}}
+        </ul>
       </div>
     {{else}}
-      <span class="p-key">
-        Org:
-      </span>
       <div class="scrollable-block">
         <span class="p-value">
           No Orgs given for this CIDR.
         </span>
       </div>
     {{/if}}
+    <h1 class="p-title">
+      {{fa-icon icon="box-open" fixedWidth=true}}
+      Products
+    </h1>
     {{#if details.product}}
-      <span class="p-key">
-        Product:
-      </span>
       <div class="scrollable-block">
-        <div class="scrollable-content">
-          <ul>
-            {{#each details.product as |product|}}
-              <li>
-                <a class="p-link" href="https://beta.shodan.io/search?query={{product.value}}">
-                  {{product.value}}
-                  {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
-                </a>
-              </li>
-            {{/each}}
-          </ul>
-        </div>
+        <ul>
+          {{#each details.product as |product|}}
+            <li>
+              <a class="p-link" href="https://beta.shodan.io/search?query={{product.value}}">
+                {{product.value}}
+                {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+              </a>
+            </li>
+          {{/each}}
+        </ul>
       </div>
     {{else}}
-      <span class="p-key">
-        Product:
-      </span>
       <div class="scrollable-block">
         <span class="p-value">
           No Products given for this CIDR.
         </span>
       </div>
     {{/if}}
+    <h1 class="p-title">
+      {{fa-icon icon="fingerprint" fixedWidth=true}}
+      Vulnerabilities
+    </h1>
     {{#if details.vuln}}
-      <span class="p-key">
-        Vulnerabilities:
-      </span>
       <div class="scrollable-block">
-        <div class="scrollable-content">
-          <span class="p-value">
-            <ul>
-              {{#each details.vuln as |vuln|}}
-                <li>
-                  {{vuln.value}}
-                </li>
-              {{/each}}
-            </ul>
-          </span>
-        </div>
+        <span class="p-value">
+          <ul>
+            {{#each details.vuln as |vuln|}}
+              <li>
+                {{vuln.value}}
+              </li>
+            {{/each}}
+          </ul>
+        </span>
       </div>
     {{else}}
-      <span class="p-key">
-        Vulnerabilities:
-      </span>
       <div class="scrollable-block">
         <span class="p-value">
           No Vulnerabilities given for this CIDR.
@@ -150,7 +131,7 @@
     {{/if}}
     {{#if details.port}}
       <h1 class="p-title">
-        {{fa-icon "th-large" fixedWidth=true}} Ports
+        {{fa-icon icon="th-large" fixedWidth=true}} Ports
       </h1>
       {{#each details.port as |port|}}
         <span class="section-tag">
