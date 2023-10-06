@@ -33,6 +33,20 @@
     </div>
   {{/if}}
 {{else}}
+  <li class="d-flex align-items-center justify-content-end copy-btn-container">
+    <button
+      class="btn copy-btn p-action"
+      title="Copy Information to Clipboard"
+      {{action "copyData"}}
+    >
+      {{fa-icon icon="clipboard" fixedWidth=true}}
+    </button>
+    <div class="copy-success-message {{if showCopyMessage "visible" "hidden"}}">
+      {{fa-icon icon="check" fixedWidth=true class="copy-success-icon"}}
+      Copied Information.
+    </div>
+  </li>
+  <div id={{concat "shodan-container-" uniqueIdPrefix}}>
   {{#if (eq entity.type "IPv4CIDR")}}
     <h1 class="p-title">
       {{fa-icon icon="location-arrow" fixedWidth=true}}
@@ -148,27 +162,13 @@
         This Entity does not exist in Shodan.
       </p>
     {{else}}
-      <li class="d-flex align-items-center justify-content-end copy-btn-container">
-        <button
-                class="btn copy-btn p-action"
-                title="Copy Information to Clipboard"
-          {{action "copyData"}}
-        >
-          {{fa-icon icon="clipboard" fixedWidth=true}}
-        </button>
-        <div class="copy-success-message {{if showCopyMessage "visible" "hidden"}}">
-          {{fa-icon icon="check" fixedWidth=true class="copy-success-icon"}}
-          Copied Information.
-        </div>
-      </li>
-
       {{#if details.ip_str}}
         <a class="p-link" href="https://www.shodan.io/host/{{details.ip_str}}">
           View in Shodan
           {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
         </a>
       {{/if}}
-      <div id={{concat "shodan-container-" uniqueIdPrefix}}>
+
         <h1 class="p-title">
           {{fa-icon "globe"}} Summary
         </h1>
@@ -591,7 +591,7 @@
             </div>
           {{/each}}
         {{/if}}
-      </div>
     {{/if}}
   {{/if}}
+  </div>
 {{/if}}
