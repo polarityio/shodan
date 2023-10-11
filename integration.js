@@ -3,7 +3,21 @@
 const request = require('postman-request');
 const fs = require('fs');
 const Bottleneck = require('bottleneck');
-const _ = require('lodash');
+const {
+  flow,
+  get,
+  partition,
+  isArray,
+  isEmpty,
+  join,
+  map,
+  size,
+  identity,
+  sortBy,
+  toArray,
+  values,
+  take
+} = require('lodash/fp');
 const cache = require('memory-cache');
 
 const config = require('./config/config');
@@ -14,6 +28,7 @@ let Logger;
 let requestWithDefaults;
 
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
+const MAX_FACET_RESULTS = 1000;
 
 function doLookup(entities, options, cb) {
   let limiter = bottlneckApiKeyCache.get(options.apiKey);
@@ -36,18 +51,42 @@ function doLookup(entities, options, cb) {
     (entity) => !entity.isPrivateIP && !IGNORED_IPS.has(entity.value)
   );
 
+  let requestOptions;
   validEntities.forEach((entity) => {
-    let requestOptions = {
-      uri: 'https://api.shodan.io/shodan/host/' + entity.value + '?key=' + options.apiKey,
-      method: 'GET',
-      json: true,
-      maxResponseSize: 2000000 // 2MB in bytes
-    };
+    if (entity.type === 'IPv4CIDR') {
+      requestOptions = {
+        uri: 'https://api.shodan.io/shodan/host/search',
+        qs: {
+          key: options.apiKey,
+          query: `net:${entity.value}`,
+          facets: `vuln:${MAX_FACET_RESULTS},port:${MAX_FACET_RESULTS},ip:${MAX_FACET_RESULTS},org:${MAX_FACET_RESULTS},product:${MAX_FACET_RESULTS}`
+        },
+        method: 'GET',
+        json: true,
+        maxResponseSize: 10000000 // 10MB in bytes
+      };
+    } else {
+      requestOptions = {
+        uri: `https://api.shodan.io/shodan/host/${entity.value}`,
+        qs: {
+          key: options.apiKey
+        },
+        method: 'GET',
+        json: true,
+        maxResponseSize: 2000000 // 2MB in bytes
+      };
+    }
+
+    Logger.trace({ requestOptions }, 'Request Options');
 
     limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
       const maxRequestQueueLimitHit =
-        (_.isEmpty(err) && _.isEmpty(result)) ||
+        (isEmpty(err) && isEmpty(result)) ||
         (err && err.message === 'This job has been dropped by Bottleneck');
+
+      if (entity.type === 'IPv4CIDR' && result && result.body) {
+        result = assembleCIDRResults(result);
+      }
 
       requestResults.push([
         err,
@@ -56,7 +95,7 @@ function doLookup(entities, options, cb) {
 
       if (requestResults.length === validEntities.length) {
         const [errs, results] = transpose2DArray(requestResults);
-        const errors = errs.filter((err) => !_.isEmpty(err));
+        const errors = errs.filter((err) => !isEmpty(err));
 
         if (errors.length) {
           Logger.trace({ errors }, 'Something went wrong');
@@ -66,8 +105,7 @@ function doLookup(entities, options, cb) {
           });
         }
 
-        // filter out empty results
-        const filteredResults = results.filter((result) => !_.isEmpty(result));
+        const filteredResults = results.filter((result) => !isEmpty(result));
 
         const lookupResults = filteredResults.map((result) => {
           if (result.limitReached) {
@@ -122,19 +160,16 @@ const requestEntity = (entity, requestOptions, callback) =>
     Logger.trace({ body }, 'Result of Lookup');
 
     if (res.statusCode === 200) {
-      // we got data!
       return callback(null, {
         entity,
         body
       });
     } else if (res.statusCode === 404) {
-      // no result found
       return callback(null, {
         entity,
         body: null
       });
     } else if (res.statusCode === 401) {
-      // no result found
       return callback({
         detail: 'Unauthorized: The provided API key is invalid.'
       });
@@ -227,16 +262,31 @@ function validateOptions(userOptions, cb) {
   cb(null, errors);
 }
 
+const assembleCIDRResults = (apiResponse) => {
+  if (apiResponse.body.total < 1) {
+    return {
+      entity: apiResponse.entity,
+      data: {
+        summary: ['No Results Found'],
+        details: { tags: ['No Results Found'] }
+      }
+    };
+  }
+
+  let resultsFacets = {
+    ...apiResponse.body.facets
+  };
+
+  return { entity: apiResponse.entity, body: resultsFacets, limitReached: false };
+};
+
 /**
  * Creates the Summary Tags (currently just tags for ports)
  * @param apiResponse
  * @returns {string[]}
  */
 const createSummary = (apiResponse) => {
-  Logger.trace({ apiResponse }, 'Creating Summary Tags');
-
   const tags = createPortTags(apiResponse);
-  Logger.trace({ tags }, 'Summary Tags Created');
 
   if (Array.isArray(apiResponse.body.tags)) {
     const apiTags = apiResponse.body.tags;
@@ -249,6 +299,8 @@ const createSummary = (apiResponse) => {
       tags.push(`+${apiTags.length - 5} more tags`);
     }
   }
+
+  if (apiResponse.body.totalVuln) tags.push(`Vulnerabilities: ${apiResponse.body.totalVuln}`);
 
   Logger.trace({ tags }, 'final tags');
   return tags;
@@ -279,56 +331,52 @@ const createSummary = (apiResponse) => {
  * @param apiResponse
  * @returns {[string]}
  */
+
 const createPortTags = (apiResponse) => {
-  Logger.trace({ apiResponse }, 'Creating Port Tags');
-  const portTags = [];
-  const ports = Array.from(apiResponse.body.ports);
+  let getPorts;
 
-  // sort the ports from smallest to largest
-  ports.sort((a, b) => {
-    return a - b;
-  });
-
-  if (ports.length === 0) {
-    return [`No Open Ports`];
-  } else if (ports.length <= 10) {
-    return [`Ports: ${ports.join(', ')}`];
+  if (Array.isArray(get('body.ports', apiResponse))) {
+    getPorts = get('body.ports');
   } else {
-    let splitIndex = ports.length;
-    for (let i = 0; i < ports.length; i++) {
-      if (ports[i] > 1024) {
-        splitIndex = i;
-        break;
-      }
-    }
-
-    // ports array is for reserved ports
-    // ephemeralPorts is for ephemeral ports ( ports > 1024)
-    const ephemeralPorts = ports.splice(splitIndex);
-    const numEphemeralPorts = ephemeralPorts.length;
-    const firstTenReservedPorts = ports.slice(0, 10);
-    const extraReservedCount = ports.length > 10 ? ports.length - 10 : 0;
-
-    if (firstTenReservedPorts.length > 0) {
-      portTags.push(
-        `Reserved Ports: ${firstTenReservedPorts.join(', ')}${
-          extraReservedCount > 0 ? ', +' + extraReservedCount + ' more' : ''
-        }`
-      );
-    }
-
-    if (numEphemeralPorts > 0) {
-      portTags.push(`${numEphemeralPorts} ephemeral ports`);
-    }
-
-    Logger.trace({ portTags }, 'Port Tags Created');
-    return portTags;
+    getPorts = flow(get('body.port'), map('value'));
   }
+
+  const ports = flow(
+    getPorts,
+    (data) => (isArray(data) ? data : values(data)),
+    toArray,
+    sortBy(identity)
+  )(apiResponse);
+
+  if (isEmpty(ports)) {
+    return [`No Open Ports`];
+  }
+
+  const [reservedPorts, ephemeralPorts] = partition((port) => port <= 1024)(ports);
+
+  var portTags = [];
+
+  if (!isEmpty(reservedPorts)) {
+    const visibleReservedPorts = take(10)(reservedPorts);
+    const hiddenCount = Math.max(size(reservedPorts) - 10, 0);
+    const visibleText = join(', ')(visibleReservedPorts);
+
+    portTags.push(
+      `Reserved Ports: ${visibleText}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`
+    );
+  }
+
+  if (!isEmpty(ephemeralPorts)) {
+    portTags.push(`${size(ephemeralPorts)} ephemeral ports`);
+  }
+
+  Logger.trace({ portTags }, 'Port Tags Created');
+  return portTags;
 };
 
 module.exports = {
-  doLookup,
   startup,
+  doLookup,
   validateOptions,
   onMessage: retryEntity
 };
