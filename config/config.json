@@ -4,7 +4,7 @@
   "acronym": "SHO",
   "defaultColor": "light-pink",
   "description": "IP Lookup Integration for Shodan",
-  "entityTypes": ["IPv4", "IPv6"],
+  "entityTypes": ["IPv4", "IPv6", "IPv4CIDR"],
   "styles": ["./styles/shodan.less"],
   "block": {
     "component": {
