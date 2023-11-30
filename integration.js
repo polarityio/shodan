@@ -180,7 +180,7 @@ const requestEntity = (entity, requestOptions, callback) =>
       });
     } else {
       return callback({
-        detail: 'Unexpected HTTP Status Received',
+        detail: body && body.error ? body.error : 'Unexpected HTTP Status Received',
         httpStatus: res.statusCode,
         body
       });
