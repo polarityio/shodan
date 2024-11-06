@@ -84,8 +84,8 @@ module.exports = {
       description: 'Your Shodan API Key.',
       default: '',
       type: 'password',
-      userCanEdit: true,
-      adminOnly: false
+      userCanEdit: false,
+      adminOnly: true
     }
   ]
 };
