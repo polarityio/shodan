@@ -31,6 +31,7 @@ const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
 const MAX_FACET_RESULTS = 1000;
 
 function doLookup(entities, options, cb) {
+  const ignoredEntityResults = [];
   let limiter = bottlneckApiKeyCache.get(options.apiKey);
 
   if (!limiter) {
@@ -47,9 +48,16 @@ function doLookup(entities, options, cb) {
   let requestResults = [];
   Logger.trace({ entities }, 'doLookup');
 
-  const validEntities = entities.filter(
-    (entity) => !entity.isPrivateIP && !IGNORED_IPS.has(entity.value)
-  );
+  const validEntities = entities.filter((entity) => {
+    if (entity.isPrivateIP || IGNORED_IPS.has(entity.value)) {
+      ignoredEntityResults.push({
+        entity,
+        data: null
+      });
+      return false;
+    } 
+    return true;
+  });
 
   let requestOptions;
   validEntities.forEach((entity) => {
@@ -129,10 +137,14 @@ function doLookup(entities, options, cb) {
         });
 
         Logger.trace({ lookupResults }, 'Lookup Results');
-        cb(null, lookupResults);
+        cb(null, lookupResults.concat(ignoredEntityResults));
       }
     });
   });
+
+  if (validEntities.length === 0) {
+    cb(null, ignoredEntityResults);
+  }
 }
 
 const parseErrorToReadableJSON = (error) =>
@@ -180,7 +192,7 @@ const requestEntity = (entity, requestOptions, callback) =>
       });
     } else {
       return callback({
-        detail: 'Unexpected HTTP Status Received',
+        detail: body && body.error ? body.error : 'Unexpected HTTP Status Received',
         httpStatus: res.statusCode,
         body
       });
