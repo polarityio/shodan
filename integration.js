@@ -89,8 +89,7 @@ function doLookup(entities, options, cb) {
 
     limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
       const maxRequestQueueLimitHit =
-        (isEmpty(err) && isEmpty(result)) ||
-        (err && err.message === 'This job has been dropped by Bottleneck');
+      ((err === null || typeof err === 'undefined') && _.isEmpty(results)) || (err && err.message === 'This job has been dropped by Bottleneck');
 
       if (entity.type === 'IPv4CIDR' && result && result.body) {
         result = assembleCIDRResults(result);
