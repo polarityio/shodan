@@ -451,22 +451,24 @@
 
         {{#if details.data}}
           <h1 class="p-title">
-            Services
+            Services ({{details.data.length}})
           </h1>
         
-          {{#each details.data as |item index|}}
-            <div class="service-pill">
-              <span class="port">
-                {{item.port}}
-              </span>
-              <span class="transport">
-                {{item.transport}}
-              </span>
-              <span class="service">
-                {{item._shodan.module}}
-              </span>
-            </div>
-          {{/each}}
+          <div class="scrollable-container">
+            {{#each details.data as |item index|}}
+              <div class="service-pill">
+                <span class="port">
+                  {{item.port}}
+                </span>
+                <span class="transport">
+                  {{item.transport}}
+                </span>
+                <span class="service">
+                  {{item._shodan.module}}
+                </span>
+              </div>
+            {{/each}}
+          </div>
         
           <div class="p-action mt-2" {{action "toggleDetails"}}>
             {{#if block._state.showDetails}}
