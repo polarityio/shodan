@@ -28,7 +28,7 @@ let Logger;
 let requestWithDefaults;
 
 const IGNORED_IPS = new Set(['127.0.0.1', '255.255.255.255', '0.0.0.0']);
-const MAX_FACET_RESULTS = 1000;
+const MAX_FACET_RESULTS = 200;
 
 function doLookup(entities, options, cb) {
   const ignoredEntityResults = [];
@@ -55,7 +55,7 @@ function doLookup(entities, options, cb) {
         data: null
       });
       return false;
-    } 
+    }
     return true;
   });
 
@@ -67,7 +67,8 @@ function doLookup(entities, options, cb) {
         qs: {
           key: options.apiKey,
           query: `net:${entity.value}`,
-          facets: `vuln:${MAX_FACET_RESULTS},port:${MAX_FACET_RESULTS},ip:${MAX_FACET_RESULTS},org:${MAX_FACET_RESULTS},product:${MAX_FACET_RESULTS}`
+          facets: `vuln:${MAX_FACET_RESULTS},port:${MAX_FACET_RESULTS},ip:${MAX_FACET_RESULTS},org:${MAX_FACET_RESULTS},product:${MAX_FACET_RESULTS}`,
+          minify: true
         },
         method: 'GET',
         json: true,
@@ -89,7 +90,7 @@ function doLookup(entities, options, cb) {
 
     limiter.submit(requestEntity, entity, requestOptions, (err, result) => {
       const maxRequestQueueLimitHit =
-        (isEmpty(err) && isEmpty(result)) ||
+        ((err === null || typeof err === 'undefined') && isEmpty(result)) ||
         (err && err.message === 'This job has been dropped by Bottleneck');
 
       if (entity.type === 'IPv4CIDR' && result && result.body) {
@@ -160,18 +161,37 @@ const requestEntity = (entity, requestOptions, callback) =>
       // We set the maximum using the `maxResponseSize` request option and then check for this very specific
       // error message to display an error to the user.
       // See: https://github.com/postmanlabs/postman-request/pull/41/files
-      if (err.message === 'Maximum response size reached') {
-        detail = `Shodan response payload is too large (> 2MB) for ${entity.value}.  Results cannot be displayed`;
+      if (err.message === 'Maximum response size reached' && !requestOptions.qs.minify) {
+        //retry the search but minify the results to return less data
+        requestOptions.qs.minify = true;
+        Logger.trace(
+          { entity: entity.value },
+          'Response size was too large, retrying request with minified results'
+        );
+        requestEntity(entity, requestOptions, callback);
+        return;
+      } else {
+        return callback({
+          detail:
+            err.message === 'Maximum response size reached'
+              ? `Shodan response payload is too large (> 2MB) for ${entity.value}.  Results cannot be displayed`
+              : detail,
+          err
+        });
       }
-      return callback({
-        detail,
-        err
-      });
     }
 
     Logger.trace({ body }, 'Result of Lookup');
 
     if (res.statusCode === 200) {
+      if (requestOptions.qs.minify) {
+        body.__minified = true;
+      }
+
+      if (Array.isArray(body.ports)) {
+        body.ports = body.ports.sort((a, b) => a - b);
+      }
+
       return callback(null, {
         entity,
         body
