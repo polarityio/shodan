@@ -48,110 +48,248 @@
   </li>
   <div id={{concat "shodan-container-" uniqueIdPrefix}}>
   {{#if (eq entity.type "IPv4CIDR")}}
-    <h1 class="p-title">
-      {{fa-icon icon="location-arrow" fixedWidth=true}}
-      IP Addresses
-    </h1>
+    <a class="p-link" href="https://shodan.io/search?query=net:{{block.entity.value}}">
+      Search in Shodan
+      {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+    </a>
     {{#if details.ip}}
-      <div class="scrollable-block">
-        <ul>
-          {{#each details.ip as |ip|}}
-            <li>
-              <a class="p-link" href="https://www.shodan.io/host/{{ip.value}}">
-                {{ip.value}} {{fa-icon "external-link-square" fixedWidth=true class="external-icon"
-              }}
-              </a>
-            </li>
-          {{/each}}
-        </ul>
+      <h1 class="p-title d-flex align-items-center justify-content-between">
+        IP Addresses ({{details.ip.length}})
+        {{#if (gte details.ip.length 200)}}
+          <div class="p-footnote">
+            Showing first 200 results
+          </div>
+        {{/if}}
+      </h1>
+      <div class="scrollable-container">
+        <table>
+          <thead>
+            <th>IP Address</th>
+            <th>Count</th>
+          </thead>
+          <tbody>
+            {{#each (take (if state.viewAllIpAddresses details.ip.length 10) details.ip) as |ip|}}
+              <tr>
+                <td>
+                  <a class="p-link" href="https://www.shodan.io/host/{{ip.value}}">
+                    {{ip.value}} {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+                  </a>
+                </td>
+                <td>{{ip.count}}</td>
+              </tr>              
+            {{/each}}
+          </tbody>
+        </table>
+        {{#if (gt details.ip.length 10)}}
+          {{#if state.viewAllIpAddresses}}
+            <div class="p-action mt-2" {{action (toggle "viewAllIpAddresses" state)}}>
+              Hide Additional IP Addresses
+              {{fa-icon "caret-up" fixedWidth=true}}
+            </div>
+          {{else}}
+            <div class="p-action mt-2" {{action (toggle "viewAllIpAddresses" state)}}>
+              View Additional IP Addresses
+              {{fa-icon "caret-down" fixedWidth=true}}
+            </div>
+          {{/if}}
+        {{/if}}
       </div>
     {{else}}
-      <div class="scrollable-block">
+      <div class="scrollable-container">
         <span class="p-value">
           No IPs given for this CIDR.
         </span>
       </div>
     {{/if}}
-    <h1 class="p-title">
-      {{fa-icon icon="sitemap" fixedWidth=true}}
-      Organizations
-    </h1>
+    
     {{#if details.org}}
-      <div class="scrollable-block">
-        <ul>
-          {{#each details.org as |org|}}
-            <li>
-              <a class="p-link" href="https://beta.shodan.io/search?query={{org.value}}">
-                {{org.value}}
-                {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
-              </a>
-            </li>
+      <h1 class="p-title d-flex align-items-center justify-content-between">
+        Organizations ({{details.org.length}})
+        {{#if (gte details.org.length 200)}}
+          <div class="p-footnote">
+            Showing first 200 results
+          </div>
+        {{/if}}
+      </h1>
+      <div class="scrollable-container">
+        <table>
+          <thead>
+            <th>Organization</th>
+            <th>Count</th>
+          </thead>
+          <tbody>
+          {{#each (take (if state.viewAllOrgs details.org.length 10) details.org) as |org|}}
+            <tr>
+              <td>
+                <a class="p-link" href="https://shodan.io/search?query={{org.value}}">
+                  {{org.value}} {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+                </a>
+              </td>
+              <td>{{org.count}}</td>
+            </tr>
           {{/each}}
-        </ul>
+          </tbody>
+        </table>
+        {{#if (gt details.org.length 10)}}
+          {{#if state.viewAllIpAddresses}}
+            <div class="p-action mt-2" {{action (toggle "viewAllOrgs" state)}}>
+              Hide Additional Organizations
+              {{fa-icon "caret-up" fixedWidth=true}}
+            </div>
+          {{else}}
+            <div class="p-action mt-2" {{action (toggle "viewAllOrgs" state)}}>
+              View Additional Organizations
+              {{fa-icon "caret-down" fixedWidth=true}}
+            </div>
+          {{/if}}
+        {{/if}}
       </div>
     {{else}}
-      <div class="scrollable-block">
+      <div class="scrollable-container">
         <span class="p-value">
           No Orgs given for this CIDR.
         </span>
       </div>
     {{/if}}
-    <h1 class="p-title">
-      {{fa-icon icon="box-open" fixedWidth=true}}
-      Products
-    </h1>
+    
     {{#if details.product}}
-      <div class="scrollable-block">
-        <ul>
-          {{#each details.product as |product|}}
-            <li>
-              <a class="p-link" href="https://beta.shodan.io/search?query={{product.value}}">
-                {{product.value}}
-                {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
-              </a>
-            </li>
+      <h1 class="p-title d-flex align-items-center justify-content-between">
+        Products ({{details.product.length}})
+        {{#if (gte details.product.length 200)}}
+          <div class="p-footnote">
+            Showing first 200 results
+          </div>
+        {{/if}}
+      </h1>
+      <div class="scrollable-container">
+        <table>
+          <thead>
+            <th>Product</th>
+            <th>Count</th>
+          </thead>
+          <tbody>
+          {{#each (take (if state.viewAllProducts details.product.length 10) details.product) as |product|}}
+            <tr>
+              <td>
+                <a class="p-link" href="https://shodan.io/search?query={{product.value}}">
+                {{product.value}} {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
+                </a>
+              </td>
+              <td>{{product.count}}</td>
+            </tr>
           {{/each}}
-        </ul>
+          </tbody>
+        </table>
+        {{#if (gt details.product.length 10)}}
+          {{#if state.viewAllProducts}}
+            <div class="p-action mt-2" {{action (toggle "viewAllProducts" state)}}>
+              Hide Additional Products
+              {{fa-icon "caret-up" fixedWidth=true}}
+            </div>
+          {{else}}
+            <div class="p-action mt-2" {{action (toggle "viewAllProducts" state)}}>
+              View Additional Products
+              {{fa-icon "caret-down" fixedWidth=true}}
+            </div>
+          {{/if}}
+        {{/if}}
       </div>
     {{else}}
-      <div class="scrollable-block">
+      <div class="scrollable-container">
         <span class="p-value">
           No Products given for this CIDR.
         </span>
       </div>
     {{/if}}
-    <h1 class="p-title">
-      {{fa-icon icon="fingerprint" fixedWidth=true}}
-      Vulnerabilities
-    </h1>
+
     {{#if details.vuln}}
-      <div class="scrollable-block">
-        <span class="p-value">
-          <ul>
-            {{#each details.vuln as |vuln|}}
-              <li>
-                {{vuln.value}}
-              </li>
+      <h1 class="p-title d-flex align-items-center justify-content-between">
+        Vulnerabilities ({{details.vuln.length}})
+        {{#if (gte details.vuln.length 200)}}
+          <div class="p-footnote">
+            Showing first 200 results
+          </div>
+        {{/if}}
+      </h1>
+      <div class="scrollable-container">
+        <table>
+          <thead>
+          <th>Vulnerability</th>
+          <th>Count</th>
+          </thead>
+          <tbody>
+            {{#each (take (if state.viewAllVulns details.vuln.length 10) details.vuln) as |vuln|}}
+              <tr>
+                <td>
+                  {{vuln.value}}
+                </td>
+                <td>{{vuln.count}}</td>
+              </tr>
             {{/each}}
-          </ul>
-        </span>
+          </tbody>
+        </table>
+        {{#if (gt details.vuln.length 10)}}
+          {{#if state.viewAllVulns}}
+            <div class="p-action mt-2" {{action (toggle "viewAllVulns" state)}}>
+              Hide Additional Vulnerabilities
+              {{fa-icon "caret-up" fixedWidth=true}}
+            </div>
+          {{else}}
+            <div class="p-action mt-2" {{action (toggle "viewAllVulns" state)}}>
+              View Additional Vulnerabilities
+              {{fa-icon "caret-down" fixedWidth=true}}
+            </div>
+          {{/if}}
+        {{/if}}
       </div>
     {{else}}
-      <div class="scrollable-block">
+      <div class="scrollable-container">
         <span class="p-value">
           No Vulnerabilities given for this CIDR.
         </span>
       </div>
     {{/if}}
+    
     {{#if details.port}}
-      <h1 class="p-title">
-        {{fa-icon icon="th-large" fixedWidth=true}} Ports
+      <h1 class="p-title d-flex align-items-center justify-content-between">
+        Ports ({{details.port.length}})
+        {{#if (gte details.port.length 200)}}
+          <div class="p-footnote">
+            Showing first 200 results
+          </div>
+        {{/if}}
       </h1>
-      {{#each details.port as |port|}}
-        <span class="section-tag">
-          {{port.value}}
-        </span>
-      {{/each}}
+      <div class="scrollable-container">
+        <table>
+          <thead>
+          <th>Port</th>
+          <th>Count</th>
+          </thead>
+          <tbody>
+            {{#each (take (if state.viewAllPorts details.port.length 10) details.port) as |port|}}
+              <tr>
+                <td>
+                  {{port.value}}
+                </td>
+                <td>{{port.count}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        {{#if (gt details.port.length 10)}}
+          {{#if state.viewAllPorts}}
+            <div class="p-action mt-2" {{action (toggle "viewAllPorts" state)}}>
+              Hide Additional Ports
+              {{fa-icon "caret-up" fixedWidth=true}}
+            </div>
+          {{else}}
+            <div class="p-action mt-2" {{action (toggle "viewAllPorts" state)}}>
+              View Additional Ports
+              {{fa-icon "caret-down" fixedWidth=true}}
+            </div>
+          {{/if}}
+        {{/if}}
+      </div>
     {{/if}}
   {{else}}
     {{#if details.noResultsFound}}
@@ -168,9 +306,18 @@
           {{fa-icon "external-link-square" fixedWidth=true class="external-icon"}}
         </a>
       {{/if}}
+    {{#if details.__minified}}
+      <div class="p-footnote">
+        Displaying minified search results
+        <span>
+          {{fa-icon "info-circle" fixedWidth=true}}
+          {{bs-tooltip title="Services information is not displayed due to the maximum data size being reached. Click \"View in Shodan\" to see the full results."}}
+        </span>
+      </div>
+    {{/if}}
 
-        <h1 class="p-title">
-          {{fa-icon "globe"}} Summary
+        <h1 class="p-title mt-2">
+          Summary
         </h1>
 
         {{#if details.city}}
@@ -249,45 +396,90 @@
             </span>
           </div>
         {{/if}}
+    
+        {{#if details.tags}}
+          <h1 class="p-title">
+            Tags ({{details.tags.length}})
+          </h1>
+          <div class="scrollable-container">
+            {{#each details.tags as |tag|}}
+              <span class="section-tag">
+                {{tag}}
+              </span>
+            {{/each}}
+          </div>
+        {{/if}}
 
         {{#if details.ports}}
           <h1 class="p-title">
-            {{fa-icon "th-large" fixedWidth=true}} Ports
+            Ports ({{details.ports.length}})
           </h1>
-          {{#each details.ports as |data|}}
-            <span class="section-tag">
-              {{data}}
-            </span>
-          {{/each}}
+          <div class="scrollable-container">
+            {{#each details.ports as |data|}}
+              <span class="section-tag">
+                {{data}}
+              </span>
+            {{/each}}
+          </div>
         {{/if}}
 
-        <h1 class="p-title">
-          {{fa-icon "th-list" fixedWidth=true}} Services
-        </h1>
-
-        {{#each details.data as |item index|}}
-          <div class="service-pill">
-            <span class="port">
-              {{item.port}}
-            </span>
-            <span class="transport">
-              {{item.transport}}
-            </span>
-            <span class="service">
-              {{item._shodan.module}}
-            </span>
+        {{#if details.domains}}
+          <h1 class="p-title">
+            Domains ({{details.domains.length}})
+          </h1>
+          <div class="scrollable-container">
+            {{#each details.domains as |domain|}}
+              <span class="section-tag">
+                {{domain}}
+              </span>
+            {{/each}}
           </div>
-        {{/each}}
+        {{/if}}
 
-        <div class="p-action mt-2" {{action "toggleDetails"}}>
-          {{#if block._state.showDetails}}
-            {{fa-icon "caret-up" fixedWidth=true}}
-            Hide Details
-          {{else}}
-            {{fa-icon "caret-down" fixedWidth=true}}
-            View Details
-          {{/if}}
+      {{#if details.vulns}}
+        <h1 class="p-title">
+          Vulnerabilities ({{details.vulns.length}})
+        </h1>
+        <div class="scrollable-container">
+          {{#each details.vulns as |vuln|}}
+            <span class="section-tag">
+              {{vuln}}
+            </span>
+          {{/each}}
         </div>
+      {{/if}}
+
+        {{#if details.data}}
+          <h1 class="p-title">
+            Services ({{details.data.length}})
+          </h1>
+        
+          <div class="scrollable-container">
+            {{#each details.data as |item index|}}
+              <div class="service-pill">
+                <span class="port">
+                  {{item.port}}
+                </span>
+                <span class="transport">
+                  {{item.transport}}
+                </span>
+                <span class="service">
+                  {{item._shodan.module}}
+                </span>
+              </div>
+            {{/each}}
+          </div>
+        
+          <div class="p-action mt-2" {{action "toggleDetails"}}>
+            {{#if block._state.showDetails}}
+              {{fa-icon "caret-up" fixedWidth=true}}
+              Hide Details
+            {{else}}
+              {{fa-icon "caret-down" fixedWidth=true}}
+              View Details
+            {{/if}}
+          </div>
+        {{/if}}
 
         {{#if block._state.showDetails}}
           {{#each details.data as |item index|}}

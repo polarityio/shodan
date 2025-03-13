@@ -1,23 +1,22 @@
 .section-tag {
-  background-color: #dedede;
+  background-color: #eee;
   border-radius: 4px;
   margin-bottom: 2px;
   padding: 3px 3px 2px 3px;
   display: inline-block;
 }
 
-.scrollable-block {
-  position: relative;
+.scrollable-container {
+  max-height: 200px;
   overflow-y: auto;
-  min-height: 10px;
-  max-height: 150px;
-  margin-bottom: 5px;
-  width: 100%;
-  padding: 3px 0px 3px 0px;
-  background-color: #f9f9f9;
+  border: 1px solid #e5e7e9;
+  padding: 5px 5px 5px 5px;
   border-radius: 3px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 155, 155, 0.7) transparent;
+  resize: vertical;
+
+  &[style*="height"] {
+    max-height: unset;
+  }
 }
 
 .summary-try-again-button {
@@ -49,11 +48,54 @@
   margin-left: 0px;
 }
 
+table {
+  font-size: 12px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  max-height: 500px;
+  margin-bottom: 0px;
+  line-height: 1em;
+
+  thead {
+    th {
+      padding: 5px 0px;
+      width: 100%;
+
+      b {
+        font-weight: 500;
+      }
+    }
+  }
+
+  tbody {
+    td {
+      border-bottom: 1px solid rgb(217, 217, 217);
+      padding: 5px 0px;
+      width: 100%;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #fff;
+    }
+
+    tr:last-child {
+      td {
+        border-bottom: none;
+      }
+    }
+
+    td:last-child, th:last-child {
+      width: 60px;
+      min-width: 60px;
+    }
+  }
+}
+
 ul {
   list-style-image: none;
   list-style-type: none;
   list-style-position: outside;
-  padding: 5px 10px;
+  padding: 0px;
   margin: 0px;
 }
 
@@ -90,7 +132,7 @@ div.service-pill {
     border-top: 1px solid gray;
     border-bottom: 1px solid gray;
     margin: 0px;
-    background-color: #ddd;
+    background-color: #eee;
   }
 }
 

@@ -4,6 +4,7 @@ polarity.export = PolarityComponent.extend({
   timezone: Ember.computed('Intl', function () {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
   }),
+  state: Ember.computed.alias('block._state'),
   showCopyMessage: false,
   uniqueIdPrefix: '',
   entity: Ember.computed.alias('block.entity'),
@@ -16,6 +17,11 @@ polarity.export = PolarityComponent.extend({
     if (!this.get('block._state')) {
       this.set('block._state', {});
       this.set('block._state.showDetails', false);
+      this.set('state.viewAllIpAddresses', false);
+      this.set('state.viewAllOrgs', false);
+      this.set('state.viewAllProducts', false);
+      this.set('state.viewAllVulns', false);
+      this.set('state.viewAllPorts', false);
     }
 
     this._super(...arguments);
